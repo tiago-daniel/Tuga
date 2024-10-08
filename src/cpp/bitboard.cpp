@@ -4,12 +4,16 @@
 
 #include "h/bitboard.h"
 
-Bitboard::Bitboard() {
-    this->positions = 0;
-}
+Bitboard::Bitboard() = default;
 
 Bitboard::Bitboard(const uint64_t positions=0) {
     this->positions = positions;
+}
+
+Bitboard::Bitboard(vector<enumSquare> squares) {
+    for (enumSquare square:squares) {
+        this->positions += Bit(square);
+    }
 }
 
 void Bitboard::setBitboard(const uint64_t positions) {
