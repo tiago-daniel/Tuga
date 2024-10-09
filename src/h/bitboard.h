@@ -5,11 +5,11 @@
 #ifndef BITBOARD_H
 #define BITBOARD_H
 
-#include <bits/stl_vector.h>
 #include <vector>
 #include "utils.h"
 
 using namespace utils;
+using namespace std;
 
 class Bitboard {
 private:
