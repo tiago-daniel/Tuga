@@ -44,9 +44,8 @@ namespace test {
         auto b = Bitboard(vector{a2});
         auto move_handler = moveGen();
         assert(b.getBitboard()==Bit(a2));
-        move_handler.move(a2,b2,b);
-        move_handler.move(b2,c2,b);
-        move_handler.move(a2,d2,b);
+        move_handler.movePiece(a2,b2,b);
+        move_handler.movePiece(b2,c2,b);
         assert(b.getBitboard()==Bit(c2));
         cout << "Move passed!" << endl;
     }

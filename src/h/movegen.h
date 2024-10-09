@@ -10,13 +10,22 @@
 class moveGen {
 public:
     moveGen();
-    void move(enumSquare initial_square, enumSquare target_square, Bitboard &board);
-    vector<enumSquare> pawnMove(enumSquare square, Color color);
-    vector<enumSquare> knightMove(enumSquare square);
-    vector<enumSquare> bishopMove(enumSquare square);
-    vector<enumSquare> rookMove(enumSquare square);
-    vector<enumSquare> queenMove(enumSquare square);
-    vector<enumSquare> kingMove(enumSquare square);
+    void movePiece(enumSquare initial_square, enumSquare target_square, Bitboard &board);
+
+    vector<enumSquare> pawnMove(enumSquare square, Color color, Bitboard board = Bitboard());
+
+    vector<enumSquare> knightMove(enumSquare square,Bitboard allies = Bitboard());
+
+    vector<enumSquare> bishopMove(enumSquare square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
+
+    vector<enumSquare> rookMove(enumSquare square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
+
+    vector<enumSquare> queenMove(enumSquare square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
+
+    vector<enumSquare> kingMove(enumSquare square, Bitboard allies = Bitboard(),Bitboard enemies = Bitboard());
+
+    vector<enumSquare> slideMove(enumSquare square, vector<pair<int, int>> directions,
+        bool slide, Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
 };
 
 
