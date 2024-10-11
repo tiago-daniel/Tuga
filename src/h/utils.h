@@ -31,32 +31,15 @@ namespace utils {
         c_black = true
     };
 
-    enum PieceType : uint8_t{
-        pt_empty = 0,
-        pt_pawn = 1,
-        pt_knight = 2,
-        pt_bishop = 3,
-        pt_rook = 4,
-        pt_queen = 5,
-        pt_king = 6
-    };
-
-    enum PieceCode : uint8_t{
-        pc_empty = pt_empty,
-        pc_wpawn = pt_pawn,
-        pc_wknight = pt_knight,
-        pc_wbishop = pt_bishop,
-        pc_wrook = pt_rook,
-        pc_wqueen = pt_queen,
-        pc_wking = pt_king,
-
-        pc_black = 8,
-        pc_bpawn = pc_black + pt_pawn,
-        pc_bknight = pc_black + pt_knight,
-        pc_bbishop = pc_black + pt_bishop,
-        pc_brook = pc_black + pt_rook,
-        pc_bqueen = pc_black + pt_queen,
-        pc_bking = pc_black + pt_king
+    enum index : uint8_t{
+        i_white = 0,
+        i_black = 1,
+        i_pawn = 2,
+        i_knight = 3,
+        i_bishop = 4,
+        i_rook = 5,
+        i_queen = 6,
+        i_king = 7
     };
 };
 

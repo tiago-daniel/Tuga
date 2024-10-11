@@ -20,7 +20,7 @@ void Bitboard::setBitboard(const uint64_t positions) {
     this->positions = positions;
 }
 
-uint64_t Bitboard::getBitboard() {
+uint64_t Bitboard::getBitboard() const {
     return this->positions;
 }
 

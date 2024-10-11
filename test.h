@@ -6,8 +6,7 @@
 #define TEST_H
 
 #include <cassert>
-#include "h/movegen.h"
-#include "h/utils.h"
+#include "h/game.h"
 
 using namespace std;
 using namespace utils;
@@ -42,10 +41,10 @@ namespace test {
 
     void testMove() {
         auto b = Bitboard(vector{a2});
-        auto move_handler = moveGen();
+        game game;
         assert(b.getBitboard()==Bit(a2));
-        move_handler.movePiece(a2,b2,b);
-        move_handler.movePiece(b2,c2,b);
+        game.movePiece(a2,b2,b);
+        game.movePiece(b2,c2,b);
         assert(b.getBitboard()==Bit(c2));
         cout << "Move passed!" << endl;
     }

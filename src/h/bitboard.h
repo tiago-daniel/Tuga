@@ -16,9 +16,9 @@ private:
     uint64_t positions = 0;
 public:
     Bitboard();
-    Bitboard(uint64_t positions);
-    Bitboard(vector<enumSquare> squares);
-    uint64_t getBitboard();
+    explicit Bitboard(uint64_t positions);
+    explicit Bitboard(vector<enumSquare> squares);
+    uint64_t getBitboard() const;
     void removeBit(uint8_t bit);
     void addBit(uint8_t bit);
     void print();

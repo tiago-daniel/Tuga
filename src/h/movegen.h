@@ -10,7 +10,6 @@
 class moveGen {
 public:
     moveGen();
-    void movePiece(enumSquare initial_square, enumSquare target_square, Bitboard &board);
 
     vector<enumSquare> pawnMove(enumSquare square, Color color, Bitboard board = Bitboard());
 

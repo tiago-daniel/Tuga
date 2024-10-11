@@ -10,11 +10,6 @@
 
 moveGen::moveGen() = default;
 
-void moveGen::movePiece(enumSquare initial_square, enumSquare target_square, Bitboard &board) {
-    board.removeBit(initial_square);
-    board.addBit(target_square);
-}
-
 vector<enumSquare> moveGen::pawnMove(enumSquare square, Color color, Bitboard board) {
     vector<enumSquare> squares = {};
     if (color == c_white and not (board.getBitboard() & Bit(square+8))) {
