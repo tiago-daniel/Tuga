@@ -51,18 +51,29 @@ namespace test {
 
     void testPawnMove() {
         auto move_handler = moveGen();
-        vector<enumSquare> squares = move_handler.pawnMove(b2,c_white);
+        auto moves = move_handler.pawnMove(b2,c_white);
+        vector<Square_index> squares = {};
+        for (auto move : moves) {
+            squares.push_back(move.origin);
+        }
         auto b = Bitboard(squares);
         assert(b.getBitboard()==Bit(b3)|Bit(b4));
-        squares = move_handler.pawnMove(b2,c_black);
-        b = Bitboard(squares);
+        squares = {};
+        moves = move_handler.pawnMove(b2,c_black);
+        for (auto move : moves) {
+            squares.push_back(move.origin);
+        }
         assert(b.getBitboard()==Bit(b1));
         cout << "PawnMove passed!" << endl;
     }
 
     void testBishopMove() {
         auto move_handler = moveGen();
-        auto squares = move_handler.bishopMove(e4);
+        auto moves = move_handler.bishopMove(e4);
+        vector<Square_index> squares = {};
+        for (auto move : moves) {
+            squares.push_back(move.origin);
+        }
         auto b = Bitboard(squares);
         assert(b.getBitboard()==108724279602332802);
         cout << "BishopMove passed!" << endl;
@@ -70,7 +81,11 @@ namespace test {
 
     void testKnightMove() {
         auto move_handler = moveGen();
-        auto squares = move_handler.knightMove(e4);
+        auto moves = move_handler.knightMove(e4);
+        vector<Square_index> squares = {};
+        for (auto move : moves) {
+            squares.push_back(move.origin);
+        }
         auto b = Bitboard(squares);
         assert(b.getBitboard()==44272527353856);
         cout << "KnightMove passed!" << endl;
@@ -78,7 +93,11 @@ namespace test {
 
     void testRookMove() {
         auto move_handler = moveGen();
-        auto squares = move_handler.rookMove(e4);
+        auto moves = move_handler.rookMove(e4);
+        vector<Square_index> squares = {};
+        for (auto move : moves) {
+            squares.push_back(move.origin);
+        }
         auto b = Bitboard(squares);
         assert(b.getBitboard()==1157442769150545936);
         cout << "RookMove passed!" << endl;
@@ -86,7 +105,11 @@ namespace test {
 
     void testQueenMove() {
         auto move_handler = moveGen();
-        auto squares = move_handler.queenMove(e4);
+        auto moves = move_handler.queenMove(e4);
+        vector<Square_index> squares = {};
+        for (auto move : moves) {
+            squares.push_back(move.origin);
+        }
         auto b = Bitboard(squares);
         assert(b.getBitboard()==1266167048752878738);
         cout << "QueenMove passed!" << endl;
@@ -94,7 +117,11 @@ namespace test {
 
     void testKingMove() {
         auto move_handler = moveGen();
-        auto squares = move_handler.kingMove(e4);
+        auto moves = move_handler.kingMove(e4);
+        vector<Square_index> squares = {};
+        for (auto move : moves) {
+            squares.push_back(move.origin);
+        }
         auto b = Bitboard(squares);
         assert(b.getBitboard()==241192927232);
         cout << "KingMove passed!" << endl;

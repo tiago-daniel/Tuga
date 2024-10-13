@@ -14,7 +14,7 @@ namespace utils {
     inline uint64_t Bit(uint8_t n) {
         return 1ULL << n;
     }
-    enum enumSquare : uint8_t {
+    enum Square_index  : uint8_t {
         a1 = 0,  b1 = 1,  c1 = 2,  d1 = 3,  e1 = 4,  f1 = 5,  g1 = 6,  h1 = 7,
         a2 = 8,  b2 = 9,  c2 = 10, d2 = 11, e2 = 12, f2 = 13, g2 = 14, h2 = 15,
         a3 = 16, b3 = 17, c3 = 18, d3 = 19, e3 = 20, f3 = 21, g3 = 22, h3 = 23,
@@ -25,13 +25,7 @@ namespace utils {
         a8 = 56, b8 = 57, c8 = 58, d8 = 59, e8 = 60, f8 = 61, g8 = 62, h8 = 63
     };
 
-
-    enum Color : bool{
-        c_white = false,
-        c_black = true
-    };
-
-    enum index : uint8_t{
+    enum Piece_index : uint8_t{
         i_white = 0,
         i_black = 1,
         i_pawn = 2,
@@ -39,10 +33,28 @@ namespace utils {
         i_bishop = 4,
         i_rook = 5,
         i_queen = 6,
-        i_king = 7
+        i_king = 7,
+        i_empty = 8
+    };
+
+    enum Color : bool{
+        c_white = 0,
+        c_black = 1,
+    };
+
+    enum Move_type {
+        NORMAL,
+        CASTLE,
+        EN_PASSANT,
+        PROMOTION,
     };
 };
 
+struct Move {
+    utils::Square_index  origin;
+    utils::Square_index  destination;
+    utils::Move_type type;
+};
 
 
 #endif //UTILS_H

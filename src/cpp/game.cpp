@@ -23,7 +23,7 @@ array<reference_wrapper<Bitboard> , 8> game::getBitboards() {
 
 
 
-void game::movePiece(enumSquare initial_square, enumSquare target_square, Bitboard &board) {
+void game::movePiece(Square_index initial_square, Square_index target_square, Bitboard &board) {
     board.removeBit(initial_square);
     board.addBit(target_square);
 }
@@ -90,6 +90,6 @@ void game::print() {
     }
 }
 
-unordered_map<enumSquare, enumSquare> game::choices() {
+array<Move, 258> choices() {
 
 }

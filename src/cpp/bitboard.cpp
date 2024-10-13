@@ -10,8 +10,8 @@ Bitboard::Bitboard(const uint64_t positions=0) {
     this->positions = positions;
 }
 
-Bitboard::Bitboard(vector<enumSquare> squares) {
-    for (enumSquare square:squares) {
+Bitboard::Bitboard(vector<Square_index> squares) {
+    for (Square_index square:squares) {
         this->positions += Bit(square);
     }
 }

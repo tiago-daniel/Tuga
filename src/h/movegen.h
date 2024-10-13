@@ -6,25 +6,28 @@
 #define MOVEGEN_H
 
 #include "bitboard.h"
+#include <array>
 
 class moveGen {
 public:
     moveGen();
 
-    vector<enumSquare> pawnMove(enumSquare square, Color color, Bitboard board = Bitboard());
+    vector<Move> pawnMove(Square_index square, Color color, Bitboard board = Bitboard(), Square_index  passant=a1);
 
-    vector<enumSquare> knightMove(enumSquare square,Bitboard allies = Bitboard());
+    vector<Move> knightMove(Square_index  square,Bitboard allies = Bitboard());
 
-    vector<enumSquare> bishopMove(enumSquare square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
+    vector<Move> bishopMove(Square_index  square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
 
-    vector<enumSquare> rookMove(enumSquare square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
+    vector<Move> rookMove(Square_index  square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
 
-    vector<enumSquare> queenMove(enumSquare square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
+    vector<Move> queenMove(Square_index  square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
 
-    vector<enumSquare> kingMove(enumSquare square, Bitboard allies = Bitboard(),Bitboard enemies = Bitboard());
+    vector<Move> kingMove(Square_index  square, Bitboard allies = Bitboard(),Bitboard enemies = Bitboard());
 
-    vector<enumSquare> slideMove(enumSquare square, vector<pair<int, int>> directions,
+    vector<Move> pieceMove(Square_index  square, vector<pair<int, int>> directions,
         bool slide, Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
+
+    vector<Move> allMoves(array<reference_wrapper<Bitboard>, 8> board, Color color);
 };
 
 
