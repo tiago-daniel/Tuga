@@ -25,6 +25,8 @@ public:
 
     vector<Move> kingMove(Square_index square, Bitboard allies = Bitboard(),Bitboard enemies = Bitboard());
 
+    vector<Move> moveGen::CastleMove(Square_index square, uint8_t castlingRights);
+
     vector<Move> pieceMove(Square_index  square, vector<pair<int, int>> directions,
         bool slide, Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
 

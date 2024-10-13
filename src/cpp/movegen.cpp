@@ -173,6 +173,46 @@ vector<Move> moveGen::kingMove(Square_index square, Bitboard allies, Bitboard en
     return pieceMove(square, directions, false, allies);
 }
 
+vector<Move> moveGen::CastleMove(Square_index square, uint8_t castlingRights) {
+    vector<Move> squares = {};
+    // Queen side White Castle
+    if(castlingRights & 0b0010) {
+        squares.push_back(Move{
+                square,                                             // origin
+                static_cast<Square_index >(square+2),               // destination
+                CASTLE                                              // type
+        });
+    }
+    //King side White Castle
+    if(castlingRights & 0b0001) {
+        squares.push_back(Move{
+                square,                                             // origin
+                static_cast<Square_index >(square-2),               // destination
+                CASTLE                                              // type
+        });
+    }
+
+    // Queen side Black Castle
+    if(castlingRights & 0b1000) {
+        squares.push_back(Move{
+                square,                                             // origin
+                static_cast<Square_index >(square-2),               // destination
+                CASTLE                                              // type
+        });
+    }
+
+    //King side Black Castle
+    if(castlingRights & 0b0100) {
+        squares.push_back(Move{
+                square,                                             // origin
+                static_cast<Square_index >(square+2),               // destination
+                CASTLE                                              // type
+        });
+    }
+    return squares;
+}
+
+
 vector<Move> moveGen::pieceMove(Square_index square, vector<pair<int, int>> directions,
     bool slide, Bitboard allies, Bitboard enemies) {
     vector<Move> squares ={};
