@@ -5,6 +5,7 @@
 #ifndef BITBOARD_H
 #define BITBOARD_H
 
+#include <array>
 #include <vector>
 #include "utils.h"
 

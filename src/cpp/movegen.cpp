@@ -19,7 +19,7 @@ vector<Move> moveGen::pawnMove(Square_index square, Color color, Bitboard allies
         if(square<(64-8) and square>=(64-16)) {
             type = PROMOTION;
         }
-      	// Single move
+        // Single move
         squares.push_back(Move{
                 square,                                             // origin
                 static_cast<Square_index >(square+8),               // destination
@@ -35,16 +35,16 @@ vector<Move> moveGen::pawnMove(Square_index square, Color color, Bitboard allies
             });
         }
 
-		// Capture
+        // Capture
         if(enemies.getBitboard() & Bit(square+7)) {
-			squares.push_back(Move{
+            squares.push_back(Move{
                 square,                                             // origin
                 static_cast<Square_index >(square+7),               // destination
                 type                                                // type
             });
         }
         if(enemies.getBitboard() & Bit(square+9)) {
-			squares.push_back(Move{
+            squares.push_back(Move{
                 square,                                             // origin
                 static_cast<Square_index >(square+9),               // destination
                 type                                                // type
@@ -53,64 +53,65 @@ vector<Move> moveGen::pawnMove(Square_index square, Color color, Bitboard allies
 
         // En passant
         if (square == passant+1 or square == passant-1) {
-        squares.push_back(Move{
-                square,                                             // origin
-                static_cast<Square_index >(passant+8),              // destination
-                EN_PASSANT                                          // type
-        });
-    }
-    else if (not (board.getBitboard() & Bit(square-8))) {
-        // Promotion
-        if(square<(64-56) and square>=(64-48)) {
-            type = PROMOTION;
-        }
-
-      	// Single move
-        squares.push_back(Move{
-                square,                                             // origin
-                static_cast<Square_index >(square-8),               // destination
-                type                                                // type
-            });
-
-        // Double move
-        if(square<(64-8) and square>=(64-16) and not (board.getBitboard() & Bit(square-16))) {
             squares.push_back(Move{
-                square,                                             // origin
-                static_cast<Square_index >(square-16),              // destination
-                NORMAL                                              // type
+                    square,                                             // origin
+                    static_cast<Square_index >(passant+8),              // destination
+                    EN_PASSANT                                          // type
             });
+        }
+        else if (not (board.getBitboard() & Bit(square-8))) {
+            // Promotion
+            if(square<(64-56) and square>=(64-48)) {
+                type = PROMOTION;
+            }
+
+            // Single move
+            squares.push_back(Move{
+                    square,                                             // origin
+                    static_cast<Square_index >(square-8),               // destination
+                    type                                                // type
+                });
+
+            // Double move
+            if(square<(64-8) and square>=(64-16) and not (board.getBitboard() & Bit(square-16))) {
+                squares.push_back(Move{
+                    square,                                             // origin
+                    static_cast<Square_index >(square-16),              // destination
+                    NORMAL                                              // type
+                });
+            }
+
+            // Capture
+            if(enemies.getBitboard() & Bit(square-7)) {
+                squares.push_back(Move{
+                    square,                                             // origin
+                    static_cast<Square_index >(square-7),               // destination
+                    type                                                // type
+                });
+            }
+            if(enemies.getBitboard() & Bit(square-9)) {
+                squares.push_back(Move{
+                    square,                                             // origin
+                    static_cast<Square_index >(square-9),               // destination
+                    type                                                // type
+                });
+            }
+
+            // En passant
+            if (square == passant+1 or square == passant-1) {
+                squares.push_back(Move{
+                        square,                                             // origin
+                        static_cast<Square_index >(passant-8),              // destination
+                        EN_PASSANT                                          // type
+                });
+            }
         }
 
-        // Capture
-        if(enemies.getBitboard() & Bit(square-7)) {
-			squares.push_back(Move{
-                square,                                             // origin
-                static_cast<Square_index >(square-7),               // destination
-                type                                                // type
-            });
-        }
-        if(enemies.getBitboard() & Bit(square-9)) {
-			squares.push_back(Move{
-                square,                                             // origin
-                static_cast<Square_index >(square-9),               // destination
-                type                                                // type
-            });
-        }
-
-        // En passant
-        if (square == passant+1 or square == passant-1) {
-        squares.push_back(Move{
-                square,                                             // origin
-                static_cast<Square_index >(passant-8),              // destination
-                EN_PASSANT                                          // type
-        });
-        }
+        return squares;
     }
-
-    return squares;
 }
 
-vector<Move> moveGen::knightMove(Square_index  square, Bitboard allies) {
+vector<Move> moveGen::knightMove(Square_index square, Bitboard allies){
     vector<pair<int, int>> directions = {
         {-2, -1}, {-2, 1},  // Two up, one left/right
         {-1, -2}, {-1, 2},  // One up, two left/right
