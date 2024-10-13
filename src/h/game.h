@@ -15,6 +15,7 @@ private:
     array<Piece_index, 64> pieces;
     moveGen move_handler = moveGen();
     uint8_t draw_count = 0;
+    bool current_player = 0;
     uint8_t can_castle = 0b1111; // Most significant bits (3 & 4) - Black can castle | Left bit (can castle to left)
 public:
     game();
@@ -25,7 +26,7 @@ public:
 
     void print();
 
-    array<Move, 258> choices();
+    array<Move, 256> allMoves(Color color, Square_index passant = a1);
 };
 
 

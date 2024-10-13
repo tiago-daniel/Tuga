@@ -51,7 +51,7 @@ namespace test {
 
     void testPawnMove() {
         auto move_handler = moveGen();
-        auto moves = move_handler.pawnMove(b2,c_white,Bitboard(),Bitboard());
+        auto moves = move_handler.pawnMove(b2,c_white,Bitboard(),Bitboard(), a1);
         vector<Square_index> squares = {};
         for (auto move : moves) {
             squares.push_back(move.origin);
@@ -59,7 +59,7 @@ namespace test {
         auto b = Bitboard(squares);
         assert(b.getBitboard()==Bit(b3)|Bit(b4));
         squares = {};
-        moves = move_handler.pawnMove(b2,c_black,Bitboard(),Bitboard());
+        moves = move_handler.pawnMove(b2,c_black,Bitboard(),Bitboard(),a1);
         for (auto move : moves) {
             squares.push_back(move.origin);
         }

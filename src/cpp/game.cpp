@@ -101,6 +101,42 @@ void game::print() {
     }
 }
 
-array<Move, 258> choices() {
-
+array<Move, 256> game::allMoves(Color color, Square_index passant) {
+    array<Move, 256> all_moves = {};
+    uint8_t i = 0;
+    Bitboard allies = this->getBitboards()[color];
+    Bitboard enemies = this->getBitboards()[color xor 1];
+    moveGen move_handler = moveGen();
+    for (int row = 7; row >= 0; row--) {
+        for (int col = 0; col < 8; col++) {
+            uint8_t n = row * 8 + col;
+            array<Move, 256> moves = {};
+            if (allies.getBitboard() & Bit(n)) {
+                switch (this->pieces[n]) {
+                    case i_pawn:
+                        moves = move_handler.pawnMove(static_cast<Square_index>(n), color, allies, enemies, passant);
+                        break;
+                    case i_knight:
+                        moves = move_handler.knightMove(static_cast<Square_index>(n), allies);
+                        break;
+                    case i_bishop:
+                        moves = move_handler.bishopMove(static_cast<Square_index>(n), allies,enemies);
+                        break;
+                    case i_rook:
+                        moves = move_handler.rookMove(static_cast<Square_index>(n), allies,enemies);
+                        break;
+                    case i_queen:
+                        moves = move_handler.queenMove(static_cast<Square_index>(n), allies,enemies);
+                        break;
+                    default:
+                        moves = move_handler.kingMove(static_cast<Square_index>(n), allies,enemies);
+                    break;
+                }
+                for (Move move : moves) {
+                    all_moves[i++] = move;
+                }
+            }
+        }
+        return all_moves;
+    }
 }

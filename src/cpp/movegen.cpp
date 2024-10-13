@@ -10,8 +10,9 @@
 
 moveGen::moveGen() = default;
 
-vector<Move> moveGen::pawnMove(Square_index square, Color color, Bitboard allies, Bitboard enemies, Square_index passant) {
-    vector<Move> squares = {};
+array<Move, 256> moveGen::pawnMove(Square_index square, Color color, Bitboard allies, Bitboard enemies, Square_index passant) {
+    array<Move, 256> squares = {};
+    uint8_t i = 0;
     Bitboard board = Bitboard(allies.getBitboard() | enemies.getBitboard());
     Move_type type = NORMAL;
 
@@ -20,7 +21,7 @@ vector<Move> moveGen::pawnMove(Square_index square, Color color, Bitboard allies
             type = PROMOTION;
         }
         // Single move
-        squares.push_back(Move{
+        squares[i++] = (Move{
                 square,                                             // origin
                 static_cast<Square_index >(square+8),               // destination
                 type                                                // type
@@ -28,7 +29,7 @@ vector<Move> moveGen::pawnMove(Square_index square, Color color, Bitboard allies
 
         // Double move
         if (square<16 and square>=8 and not (board.getBitboard() & Bit(square+16))) {
-            squares.push_back(Move{
+            squares[i++] = (Move{
                 square,                                             // origin
                 static_cast<Square_index >(square+16),              // destination
                 NORMAL                                              // type
@@ -37,14 +38,14 @@ vector<Move> moveGen::pawnMove(Square_index square, Color color, Bitboard allies
 
         // Capture
         if(enemies.getBitboard() & Bit(square+7)) {
-            squares.push_back(Move{
+            squares[i++] = (Move{
                 square,                                             // origin
                 static_cast<Square_index >(square+7),               // destination
                 type                                                // type
             });
         }
         if(enemies.getBitboard() & Bit(square+9)) {
-            squares.push_back(Move{
+            squares[i++] = (Move{
                 square,                                             // origin
                 static_cast<Square_index >(square+9),               // destination
                 type                                                // type
@@ -53,7 +54,7 @@ vector<Move> moveGen::pawnMove(Square_index square, Color color, Bitboard allies
 
         // En passant
         if (square == passant+1 or square == passant-1) {
-            squares.push_back(Move{
+            squares[i++] = (Move{
                     square,                                             // origin
                     static_cast<Square_index >(passant+8),              // destination
                     EN_PASSANT                                          // type
@@ -66,7 +67,7 @@ vector<Move> moveGen::pawnMove(Square_index square, Color color, Bitboard allies
             }
 
             // Single move
-            squares.push_back(Move{
+            squares[i++] = (Move{
                     square,                                             // origin
                     static_cast<Square_index >(square-8),               // destination
                     type                                                // type
@@ -74,7 +75,7 @@ vector<Move> moveGen::pawnMove(Square_index square, Color color, Bitboard allies
 
             // Double move
             if(square<(64-8) and square>=(64-16) and not (board.getBitboard() & Bit(square-16))) {
-                squares.push_back(Move{
+                squares[i++] = (Move{
                     square,                                             // origin
                     static_cast<Square_index >(square-16),              // destination
                     NORMAL                                              // type
@@ -83,14 +84,14 @@ vector<Move> moveGen::pawnMove(Square_index square, Color color, Bitboard allies
 
             // Capture
             if(enemies.getBitboard() & Bit(square-7)) {
-                squares.push_back(Move{
+                squares[i++] = (Move{
                     square,                                             // origin
                     static_cast<Square_index >(square-7),               // destination
                     type                                                // type
                 });
             }
             if(enemies.getBitboard() & Bit(square-9)) {
-                squares.push_back(Move{
+                squares[i++] = (Move{
                     square,                                             // origin
                     static_cast<Square_index >(square-9),               // destination
                     type                                                // type
@@ -99,7 +100,7 @@ vector<Move> moveGen::pawnMove(Square_index square, Color color, Bitboard allies
 
             // En passant
             if (square == passant+1 or square == passant-1) {
-                squares.push_back(Move{
+                squares[i++] = (Move{
                         square,                                             // origin
                         static_cast<Square_index >(passant-8),              // destination
                         EN_PASSANT                                          // type
@@ -111,7 +112,7 @@ vector<Move> moveGen::pawnMove(Square_index square, Color color, Bitboard allies
     }
 }
 
-vector<Move> moveGen::knightMove(Square_index square, Bitboard allies){
+array<Move, 256> moveGen::knightMove(Square_index square, Bitboard allies){
     vector<pair<int, int>> directions = {
         {-2, -1}, {-2, 1},  // Two up, one left/right
         {-1, -2}, {-1, 2},  // One up, two left/right
@@ -121,7 +122,7 @@ vector<Move> moveGen::knightMove(Square_index square, Bitboard allies){
     return pieceMove(square, directions, false, allies);
 }
 
-vector<Move> moveGen::bishopMove(Square_index square, Bitboard allies, Bitboard enemies) {
+array<Move, 256> moveGen::bishopMove(Square_index square, Bitboard allies, Bitboard enemies) {
     vector<pair<int, int>> directions = {
         {-1, -1},
         {-1, 1},
@@ -132,7 +133,7 @@ vector<Move> moveGen::bishopMove(Square_index square, Bitboard allies, Bitboard 
     return pieceMove(square, directions, true, allies, enemies);
 }
 
-vector<Move> moveGen::rookMove(Square_index square, Bitboard allies, Bitboard enemies) {
+array<Move, 256> moveGen::rookMove(Square_index square, Bitboard allies, Bitboard enemies) {
     vector<pair<int, int>> directions = {
         {0, -1},
         {-1, 0},
@@ -143,7 +144,7 @@ vector<Move> moveGen::rookMove(Square_index square, Bitboard allies, Bitboard en
     return pieceMove(square, directions, true, allies, enemies);
 }
 
-vector<Move> moveGen::queenMove(Square_index square, Bitboard allies, Bitboard enemies) {
+array<Move, 256> moveGen::queenMove(Square_index square, Bitboard allies, Bitboard enemies) {
     vector<pair<int, int>> directions = {
         {-1, -1},
         {-1, 1},
@@ -158,7 +159,7 @@ vector<Move> moveGen::queenMove(Square_index square, Bitboard allies, Bitboard e
     return pieceMove(square, directions, true, allies, enemies);
 }
 
-vector<Move> moveGen::kingMove(Square_index square, Bitboard allies, Bitboard enemies) {
+array<Move, 256> moveGen::kingMove(Square_index square, Bitboard allies, Bitboard enemies) {
     vector<pair<int, int>> directions = {
         {-1, -1},
         {-1, 1},
@@ -173,11 +174,12 @@ vector<Move> moveGen::kingMove(Square_index square, Bitboard allies, Bitboard en
     return pieceMove(square, directions, false, allies);
 }
 
-vector<Move> moveGen::CastleMove(Square_index square, uint8_t castlingRights) {
-    vector<Move> squares = {};
+array<Move, 256> moveGen::CastleMove(Square_index square, uint8_t castlingRights) {
+    array<Move, 256> squares = {};
+    uint8_t i = 0;
     // Queen side White Castle
     if(castlingRights & 0b0010) {
-        squares.push_back(Move{
+        squares[i++] = (Move{
                 square,                                             // origin
                 static_cast<Square_index >(square+2),               // destination
                 CASTLE                                              // type
@@ -185,7 +187,7 @@ vector<Move> moveGen::CastleMove(Square_index square, uint8_t castlingRights) {
     }
     //King side White Castle
     if(castlingRights & 0b0001) {
-        squares.push_back(Move{
+        squares[i++] = (Move{
                 square,                                             // origin
                 static_cast<Square_index >(square-2),               // destination
                 CASTLE                                              // type
@@ -194,7 +196,7 @@ vector<Move> moveGen::CastleMove(Square_index square, uint8_t castlingRights) {
 
     // Queen side Black Castle
     if(castlingRights & 0b1000) {
-        squares.push_back(Move{
+        squares[i++] = (Move{
                 square,                                             // origin
                 static_cast<Square_index >(square-2),               // destination
                 CASTLE                                              // type
@@ -203,7 +205,7 @@ vector<Move> moveGen::CastleMove(Square_index square, uint8_t castlingRights) {
 
     //King side Black Castle
     if(castlingRights & 0b0100) {
-        squares.push_back(Move{
+        squares[i++] = (Move{
                 square,                                             // origin
                 static_cast<Square_index >(square+2),               // destination
                 CASTLE                                              // type
@@ -213,9 +215,10 @@ vector<Move> moveGen::CastleMove(Square_index square, uint8_t castlingRights) {
 }
 
 
-vector<Move> moveGen::pieceMove(Square_index square, vector<pair<int, int>> directions,
+array<Move, 256> moveGen::pieceMove(Square_index square, vector<pair<int, int>> directions,
     bool slide, Bitboard allies, Bitboard enemies) {
-    vector<Move> squares ={};
+    array<Move, 256> squares ={};
+    uint8_t i = 0;
 
     // Get the current rank and file
     int rank = square / 8; // Rows (0 to 7)
@@ -237,7 +240,7 @@ vector<Move> moveGen::pieceMove(Square_index square, vector<pair<int, int>> dire
             if ( allies.getBitboard() & Bit((newRank * 8 + newFile))) {
                 break;
             }
-            squares.push_back(Move{
+            squares[i++] = (Move{
                 square,                                             // origin
                 static_cast<Square_index>(newRank * 8 + newFile),     // destination
                 NORMAL                                              // type
@@ -248,21 +251,4 @@ vector<Move> moveGen::pieceMove(Square_index square, vector<pair<int, int>> dire
         } while (slide);
     }
     return squares;
-}
-
-
-
-vector<Move> moveGen::allMoves(array<reference_wrapper<Bitboard> , 8> board, Color color) {
-    vector<Move> all_moves = {};
-    Bitboard allies = board[color];
-    Bitboard enemies = board[color xor 1];
-    for (int row = 7; row >= 0; row--) {
-        for (int col = 0; col < 8; col++) {
-            uint8_t n = row * 8 + col;
-            if (allies.getBitboard() & Bit(n)) {
-
-            }
-        }
-        return all_moves;
-    }
 }
