@@ -10,43 +10,103 @@
 
 moveGen::moveGen() = default;
 
-vector<Move> moveGen::pawnMove(Square_index square, Color color, Bitboard board, Square_index passant) {
+vector<Move> moveGen::pawnMove(Square_index square, Color color, Bitboard allies, Bitboard enemies, Square_index passant) {
     vector<Move> squares = {};
+    Bitboard board = Bitboard(allies.getBitboard() | enemies.getBitboard());
+    Move_type type = NORMAL;
+
     if (color == c_white and not (board.getBitboard() & Bit(square+8))) {
+        if(square<(64-8) and square>=(64-16)) {
+            type = PROMOTION;
+        }
+      	// Single move
         squares.push_back(Move{
                 square,                                             // origin
-                static_cast<Square_index >(square+8),                  // destination
-                NORMAL                                              // type
-            });
+                static_cast<Square_index >(square+8),               // destination
+                type                                                // type
+        });
+
+        // Double move
         if (square<16 and square>=8 and not (board.getBitboard() & Bit(square+16))) {
             squares.push_back(Move{
                 square,                                             // origin
-                static_cast<Square_index >(square+16),                 // destination
+                static_cast<Square_index >(square+16),              // destination
                 NORMAL                                              // type
             });
         }
-    }
-    else if (not (board.getBitboard() & Bit(square-8))) {
+
+		// Capture
+        if(enemies.getBitboard() & Bit(square+7)) {
+			squares.push_back(Move{
+                square,                                             // origin
+                static_cast<Square_index >(square+7),               // destination
+                type                                                // type
+            });
+        }
+        if(enemies.getBitboard() & Bit(square+9)) {
+			squares.push_back(Move{
+                square,                                             // origin
+                static_cast<Square_index >(square+9),               // destination
+                type                                                // type
+            });
+        }
+
+        // En passant
+        if (square == passant+1 or square == passant-1) {
         squares.push_back(Move{
                 square,                                             // origin
-                static_cast<Square_index >(square-8),                  // destination
-                NORMAL                                              // type
+                static_cast<Square_index >(passant+8),              // destination
+                EN_PASSANT                                          // type
+        });
+    }
+    else if (not (board.getBitboard() & Bit(square-8))) {
+        // Promotion
+        if(square<(64-56) and square>=(64-48)) {
+            type = PROMOTION;
+        }
+
+      	// Single move
+        squares.push_back(Move{
+                square,                                             // origin
+                static_cast<Square_index >(square-8),               // destination
+                type                                                // type
             });
+
+        // Double move
         if(square<(64-8) and square>=(64-16) and not (board.getBitboard() & Bit(square-16))) {
             squares.push_back(Move{
                 square,                                             // origin
-                static_cast<Square_index >(square-16),                 // destination
+                static_cast<Square_index >(square-16),              // destination
                 NORMAL                                              // type
             });
         }
-    }
-    if (square == passant+1 or square == passant-1) {
+
+        // Capture
+        if(enemies.getBitboard() & Bit(square-7)) {
+			squares.push_back(Move{
+                square,                                             // origin
+                static_cast<Square_index >(square-7),               // destination
+                type                                                // type
+            });
+        }
+        if(enemies.getBitboard() & Bit(square-9)) {
+			squares.push_back(Move{
+                square,                                             // origin
+                static_cast<Square_index >(square-9),               // destination
+                type                                                // type
+            });
+        }
+
+        // En passant
+        if (square == passant+1 or square == passant-1) {
         squares.push_back(Move{
                 square,                                             // origin
-                passant,                                            // destination
+                static_cast<Square_index >(passant-8),              // destination
                 EN_PASSANT                                          // type
-            });
+        });
+        }
     }
+
     return squares;
 }
 

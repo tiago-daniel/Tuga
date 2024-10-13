@@ -12,7 +12,7 @@ class moveGen {
 public:
     moveGen();
 
-    vector<Move> pawnMove(Square_index square, Color color, Bitboard board = Bitboard(), Square_index  passant=a1);
+    vector<Move> pawnMove(Square_index square, Color color, Bitboard allies, Bitboard enemies, Square_index passant=a1);
 
     vector<Move> knightMove(Square_index  square,Bitboard allies = Bitboard());
 
