@@ -38,6 +38,12 @@ void game::movePiece(Square_index initial_square, Square_index target_square, Bi
     board.addBit(target_square);
     pieces[target_square] = pieces[initial_square];
     pieces[initial_square] = pieces[i_empty];
+    this->current_player ^= 1;
+    this->draw_count++;
+}
+
+bool game::getCurrentPlayer() {
+    return this->current_player;
 }
 
 void game::print() {
@@ -101,11 +107,11 @@ void game::print() {
     }
 }
 
-array<Move, 256> game::allMoves(Color color, Square_index passant) {
+array<Move, 256> game::allMoves() {
     array<Move, 256> all_moves = {};
     uint8_t i = 0;
-    Bitboard allies = this->getBitboards()[color];
-    Bitboard enemies = this->getBitboards()[color xor 1];
+    Bitboard allies = this->getBitboards()[this->current_player];
+    Bitboard enemies = this->getBitboards()[this->current_player xor 1];
     moveGen move_handler = moveGen();
     for (int row = 7; row >= 0; row--) {
         for (int col = 0; col < 8; col++) {
@@ -114,20 +120,20 @@ array<Move, 256> game::allMoves(Color color, Square_index passant) {
             if (allies.getBitboard() & Bit(n)) {
                 switch (this->pieces[n]) {
                     case i_pawn:
-                        moves = move_handler.pawnMove(static_cast<Square_index>(n), color, allies, enemies, passant);
-                        break;
+                        moves = move_handler.pawnMove(static_cast<Square_index>(n), static_cast<Color>(this->current_player), allies, enemies, passant);
+                    break;
                     case i_knight:
                         moves = move_handler.knightMove(static_cast<Square_index>(n), allies);
-                        break;
+                    break;
                     case i_bishop:
                         moves = move_handler.bishopMove(static_cast<Square_index>(n), allies,enemies);
-                        break;
+                    break;
                     case i_rook:
                         moves = move_handler.rookMove(static_cast<Square_index>(n), allies,enemies);
-                        break;
+                    break;
                     case i_queen:
                         moves = move_handler.queenMove(static_cast<Square_index>(n), allies,enemies);
-                        break;
+                    break;
                     default:
                         moves = move_handler.kingMove(static_cast<Square_index>(n), allies,enemies);
                     break;
@@ -137,6 +143,6 @@ array<Move, 256> game::allMoves(Color color, Square_index passant) {
                 }
             }
         }
-        return all_moves;
     }
+    return all_moves;
 }

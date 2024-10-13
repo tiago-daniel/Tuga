@@ -56,5 +56,21 @@ struct Move {
     utils::Move_type type;
 };
 
+inline string squareToString(utils::Square_index square) {
+    char file = 'a' + (square % 8);
+    char rank = '1' + (square / 8);
+
+    return string(1, file) + rank;
+};
+
+inline ostream& operator<<(ostream& os, const utils::Square_index square) {
+    os << squareToString(square);
+    return os;
+};
+
+inline ostream& operator<<(ostream& os, const Move& i) {
+    os << "(" << i.origin << ", " << i.destination << ", " << i.type << ")";
+    return os;
+};
 
 #endif //UTILS_H
