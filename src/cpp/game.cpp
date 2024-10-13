@@ -113,7 +113,7 @@ array<Move, 256> game::allMoves() {
     Bitboard allies = this->getBitboards()[this->current_player];
     Bitboard enemies = this->getBitboards()[this->current_player xor 1];
     moveGen move_handler = moveGen();
-    for (int row = 7; row >= 0; row--) {
+    for (int row = 0; row < 8; row++) {
         for (int col = 0; col < 8; col++) {
             uint8_t n = row * 8 + col;
             array<Move, 256> moves = {};
