@@ -8,5 +8,8 @@
 int main() {
   game game;
   game.print();
+  for (Move move : game.allMoves()) {
+    cout << move << endl;
+  }
   return 0;
 }
