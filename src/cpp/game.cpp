@@ -15,6 +15,16 @@ game::game() {
     this->rook = Bitboard({a1,h1,a8,h8}); // i_rook = 5
     this->queen = Bitboard({d1,d8}); // i_queen = 6
     this->king = Bitboard({e1,e8}); // i_king = 7
+    this->pieces = {
+        i_rook, i_knight, i_bishop, i_queen, i_king, i_bishop, i_knight, i_rook,
+        i_pawn, i_pawn, i_pawn, i_pawn, i_pawn, i_pawn, i_pawn, i_pawn,
+        i_empty, i_empty, i_empty, i_empty, i_empty, i_empty, i_empty, i_empty,
+        i_empty, i_empty, i_empty, i_empty, i_empty, i_empty, i_empty, i_empty,
+        i_empty, i_empty, i_empty, i_empty, i_empty, i_empty, i_empty, i_empty,
+        i_empty, i_empty, i_empty, i_empty, i_empty, i_empty, i_empty, i_empty,
+        i_pawn, i_pawn, i_pawn, i_pawn, i_pawn, i_pawn, i_pawn, i_pawn,
+        i_rook, i_knight, i_bishop, i_queen, i_king, i_bishop, i_knight, i_rook,
+    };
 }
 
 array<reference_wrapper<Bitboard> , 8> game::getBitboards() {
@@ -26,57 +36,58 @@ array<reference_wrapper<Bitboard> , 8> game::getBitboards() {
 void game::movePiece(Square_index initial_square, Square_index target_square, Bitboard &board) {
     board.removeBit(initial_square);
     board.addBit(target_square);
+    pieces[target_square] = pieces[initial_square];
+    pieces[initial_square] = pieces[i_empty];
 }
 
 void game::print() {
     uint64_t white = this->getBitboards()[i_white].get().getBitboard();
     uint64_t black = this->getBitboards()[i_black].get().getBitboard();
-    uint64_t pawn = this->getBitboards()[i_pawn].get().getBitboard();
-    uint64_t knight = this->getBitboards()[i_knight].get().getBitboard();
-    uint64_t bishop = this->getBitboards()[i_bishop].get().getBitboard();
-    uint64_t rook = this->getBitboards()[i_rook].get().getBitboard();
-    uint64_t queen = this->getBitboards()[i_queen].get().getBitboard();
     for (int row = 7; row >= 0; row--) {
         for (int col = 0; col < 8; col++) {
             uint8_t n = row * 8 + col;
             if (white & Bit(n)) {
-                if (pawn & Bit(n)) {
-                    cout << 'P' << " ";
-                }
-                else if (knight & Bit(n)) {
-                    cout << 'N' << " ";
-                }
-                else if (rook & Bit(n)) {
-                    cout << 'R' << " ";
-                }
-                else if (bishop & Bit(n)) {
-                    cout << 'B' << " ";
-                }
-                else if (queen & Bit(n)) {
-                    cout << 'Q' << " ";
-                }
-                else {
-                    cout << 'K' << " ";
+                switch (pieces[n]) {
+                    case i_pawn:
+                        cout << 'P' << " ";
+                        break;
+                    case i_knight:
+                        cout << 'N' << " ";
+                        break;
+                    case i_bishop:
+                        cout << 'B' << " ";
+                        break;
+                    case i_rook:
+                        cout << 'R' << " ";
+                        break;
+                    case i_queen:
+                        cout << 'Q' << " ";
+                        break;
+                    default:
+                        cout << 'K' << " ";
+                        break;
                 }
             }
             else if (black & Bit(n)) {
-                if (pawn & Bit(n)) {
-                    cout << 'p' << " ";
-                }
-                else if (knight & Bit(n)) {
-                    cout << 'n' << " ";
-                }
-                else if (rook & Bit(n)) {
-                    cout << 'r' << " ";
-                }
-                else if (bishop & Bit(n)) {
-                    cout << 'b' << " ";
-                }
-                else if (queen & Bit(n)) {
-                    cout << 'q' << " ";
-                }
-                else {
-                    cout << 'k' << " ";
+                switch (pieces[n]) {
+                    case i_pawn:
+                        cout << 'p' << " ";
+                        break;
+                    case i_knight:
+                        cout << 'n' << " ";
+                        break;
+                    case i_bishop:
+                        cout << 'b' << " ";
+                        break;
+                    case i_rook:
+                        cout << 'r' << " ";
+                        break;
+                    case i_queen:
+                        cout << 'q' << " ";
+                        break;
+                    default:
+                        cout << 'k' << " ";
+                        break;
                 }
             }
             else if ((row + col) % 2 == 0){
