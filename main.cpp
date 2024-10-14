@@ -6,10 +6,16 @@
 #include "test.h"
 
 int main() {
-  game game;
-  game.print();
-  for (Move move : game.allMoves()) {
-    cout << move << endl;
+  Game game;
+  int n = 0;
+  while(true) {
+    game.print();
+    auto moves = game.allMoves();
+    for (uint8_t i = 0; moves[i] != Move(); i++) {
+      cout << int(i) << " : " << moves[i] << endl;
+    }
+    cin >> n;
+    game.makeMove(moves[n]);
   }
   return 0;
 }

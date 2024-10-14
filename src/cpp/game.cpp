@@ -6,7 +6,7 @@
 
 #include <unordered_map>
 
-game::game() {
+Game::Game() {
     this->white = Bitboard({a1,b1,c1,d1,e1,f1,g1,h1,a2,b2,c2,d2,e2,f2,g2,h2}); // i_white = 0
     this->black = Bitboard({a7,b7,c7,d7,e7,f7,g7,h7,a8,b8,c8,d8,e8,f8,g8,h8}); // i_black = 1
     this->pawn = Bitboard({a2,b2,c2,d2,e2,f2,g2,h2,a7,b7,c7,d7,e7,f7,g7,h7}); // i_pawn = 2
@@ -27,26 +27,34 @@ game::game() {
     };
 }
 
-array<reference_wrapper<Bitboard> , 8> game::getBitboards() {
+array<reference_wrapper<Bitboard> , 8> Game::getBitboards() {
     return this->boards;
 }
 
 
 
-void game::movePiece(Square_index initial_square, Square_index target_square, Bitboard &board) {
-    board.removeBit(initial_square);
-    board.addBit(target_square);
-    pieces[target_square] = pieces[initial_square];
-    pieces[initial_square] = pieces[i_empty];
+void Game::makeMove(Move move) {
+    this->passant = a1;
+    for (auto board : this->boards) {
+        if (board.get().getBitboard() & Bit(move.origin)) {
+            board.get().removeBit(move.origin);
+            board.get().addBit(move.destination);
+        }
+    }
+    pieces[move.destination] = pieces[move.origin];
+    pieces[move.origin] = pieces[i_empty];
+    if (pieces[move.destination] == i_pawn and move.destination == move.origin + 16) {
+        passant = move.destination;                     // make en passant square
+    }
     this->current_player ^= 1;
     this->draw_count++;
 }
 
-bool game::getCurrentPlayer() {
+bool Game::getCurrentPlayer() {
     return this->current_player;
 }
 
-void game::print() {
+void Game::print() {
     uint64_t white = this->getBitboards()[i_white].get().getBitboard();
     uint64_t black = this->getBitboards()[i_black].get().getBitboard();
     for (int row = 7; row >= 0; row--) {
@@ -107,42 +115,37 @@ void game::print() {
     }
 }
 
-array<Move, 256> game::allMoves() {
-    array<Move, 256> all_moves = {};
-    uint8_t i = 0;
+array<Move, 256> Game::allMoves() {
+    array<Move, 256> moves = {};
     Bitboard allies = this->getBitboards()[this->current_player];
     Bitboard enemies = this->getBitboards()[this->current_player xor 1];
     moveGen move_handler = moveGen();
     for (int row = 0; row < 8; row++) {
         for (int col = 0; col < 8; col++) {
             uint8_t n = row * 8 + col;
-            array<Move, 256> moves = {};
             if (allies.getBitboard() & Bit(n)) {
                 switch (this->pieces[n]) {
                     case i_pawn:
-                        moves = move_handler.pawnMove(static_cast<Square_index>(n), static_cast<Color>(this->current_player), allies, enemies, passant);
+                        move_handler.pawnMove(moves, static_cast<Square_index>(n), static_cast<Color>(this->current_player), allies, enemies, passant);
                     break;
                     case i_knight:
-                        moves = move_handler.knightMove(static_cast<Square_index>(n), allies);
+                        move_handler.knightMove(moves, static_cast<Square_index>(n), allies);
                     break;
                     case i_bishop:
-                        moves = move_handler.bishopMove(static_cast<Square_index>(n), allies,enemies);
+                        move_handler.bishopMove(moves, static_cast<Square_index>(n), allies,enemies);
                     break;
                     case i_rook:
-                        moves = move_handler.rookMove(static_cast<Square_index>(n), allies,enemies);
+                        move_handler.rookMove(moves, static_cast<Square_index>(n), allies,enemies);
                     break;
                     case i_queen:
-                        moves = move_handler.queenMove(static_cast<Square_index>(n), allies,enemies);
+                        move_handler.queenMove(moves, static_cast<Square_index>(n), allies,enemies);
                     break;
                     default:
-                        moves = move_handler.kingMove(static_cast<Square_index>(n), allies,enemies);
+                        move_handler.kingMove(moves, static_cast<Square_index>(n), allies,enemies);
                     break;
-                }
-                for (Move move : moves) {
-                    all_moves[i++] = move;
                 }
             }
         }
     }
-    return all_moves;
+    return moves;
 }
