@@ -244,37 +244,22 @@ void moveGen::kingMove(array<Move, 256> &moves, Square_index square, Bitboard al
     pieceMove(moves,square, directions, false, allies);
 }
 
-void moveGen::CastleMove(array<Move, 256> &moves, Square_index square, uint8_t castlingRights) {
+void moveGen::castleMove(array<Move, 256> &moves, Square_index square, uint8_t castlingRights, Bitboard allies, Bitboard enemies) {
     uint8_t i = 0;
+    auto board = Bitboard(allies.getBitboard() | enemies.getBitboard());
     while (moves[i] != Move()) {i++;}
     // Queen side White Castle
-    if(castlingRights & 0b0010) {
+    if(((castlingRights & 0b0010 and square == e1) or (castlingRights & 0b1000 and square == e8))
+        and board.getBitboard() & Bit(square - 1) and board.getBitboard() & Bit(square - 2) and board.getBitboard() & Bit(square - 3)) {
         moves[i++] = (Move{
                 square,                                             // origin
-                static_cast<Square_index >(square+2),               // destination
+                static_cast<Square_index >(square-2),               // destination
                 CASTLE                                              // type
         });
     }
     //King side White Castle
-    if(castlingRights & 0b0001) {
-        moves[i++] = (Move{
-                square,                                             // origin
-                static_cast<Square_index >(square-2),               // destination
-                CASTLE                                              // type
-        });
-    }
-
-    // Queen side Black Castle
-    if(castlingRights & 0b1000) {
-        moves[i++] = (Move{
-                square,                                             // origin
-                static_cast<Square_index >(square-2),               // destination
-                CASTLE                                              // type
-        });
-    }
-
-    //King side Black Castle
-    if(castlingRights & 0b0100) {
+    if((castlingRights & 0b0001 and square == e1) or castlingRights & 0b0100 and square == e8 and board.getBitboard()
+        & Bit(square + 1) and board.getBitboard() & Bit(square + 2)) {
         moves[i++] = (Move{
                 square,                                             // origin
                 static_cast<Square_index >(square+2),               // destination

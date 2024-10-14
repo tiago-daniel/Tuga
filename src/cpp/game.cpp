@@ -171,8 +171,11 @@ void Game::print() {
                     case i_queen:
                         cout << 'Q' << " ";
                         break;
-                    default:
+                    case i_king:
                         cout << 'K' << " ";
+                        break;
+                    default:
+                        cout << 'X' << " ";
                         break;
                 }
             }
@@ -193,8 +196,11 @@ void Game::print() {
                     case i_queen:
                         cout << 'q' << " ";
                         break;
-                    default:
+                    case i_king:
                         cout << 'k' << " ";
+                        break;
+                    default:
+                        cout << 'x' << " ";
                         break;
                 }
             }
@@ -236,7 +242,8 @@ array<Move, 256> Game::allMoves() {
                     break;
                     default:
                         move_handler.kingMove(moves, static_cast<Square_index>(n), allies,enemies);
-                    break;
+                        move_handler.castleMove(moves, static_cast<Square_index>(n), this->can_castle,allies, enemies);
+                        break;
                 }
             }
         }
