@@ -43,10 +43,10 @@ namespace utils {
     };
 
     enum Move_type {
-        NORMAL,
-        CASTLE,
-        EN_PASSANT,
-        PROMOTION,
+        NORMAL = 0,
+        CASTLE = 1,
+        EN_PASSANT = 2,
+        PROMOTION = 3,
     };
 };
 
@@ -76,7 +76,12 @@ inline ostream& operator<<(ostream& os, const utils::Square_index square) {
 };
 
 inline ostream& operator<<(ostream& os, const Move& i) {
-    os << "(" << i.origin << ", " << i.destination << ", " << i.type << ")";
+    if (i.promotion == utils::i_pawn) {
+        os << "(" << i.origin << ", " << i.destination << ", " << i.type << ")";
+    }
+    else {
+        os << "(" << i.origin << ", " << i.destination << ", " << i.type << ", " << int(i.promotion) << ")";
+    }
     return os;
 };
 

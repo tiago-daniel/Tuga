@@ -14,6 +14,7 @@ int main() {
     for (uint8_t i = 0; moves[i] != Move(); i++) {
       cout << int(i) << " : " << moves[i] << endl;
     }
+    cout << game.getPassant();
     cin >> n;
     game.makeMove(moves[n]);
   }
