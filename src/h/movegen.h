@@ -25,7 +25,7 @@ public:
 
     void kingMove(array<Move, 256> &moves, Square_index square, Bitboard allies = Bitboard(),Bitboard enemies = Bitboard());
 
-    void CastleMove(array<Move, 256> &moves, Square_index square, uint8_t castlingRights);
+    void castleMove(array<Move, 256> &moves, Square_index square,uint8_t castlingRights, Bitboard allies = Bitboard(),Bitboard enemies = Bitboard());
 
     void pieceMove(array<Move, 256> &moves, Square_index  square, vector<pair<int, int>> directions,
         bool slide, Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
