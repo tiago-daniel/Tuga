@@ -250,7 +250,7 @@ void moveGen::castleMove(array<Move, 256> &moves, Square_index square, uint8_t c
     while (moves[i] != Move()) {i++;}
     // Queen side White Castle
     if(((castlingRights & 0b0010 and square == e1) or (castlingRights & 0b1000 and square == e8))
-        and board.getBitboard() & Bit(square - 1) and board.getBitboard() & Bit(square - 2) and board.getBitboard() & Bit(square - 3)) {
+        and not (board.getBitboard() & Bit(square - 1)) and not (board.getBitboard() & Bit(square - 2)) and  not (board.getBitboard() & Bit(square - 3))) {
         moves[i++] = (Move{
                 square,                                             // origin
                 static_cast<Square_index >(square-2),               // destination
@@ -258,8 +258,8 @@ void moveGen::castleMove(array<Move, 256> &moves, Square_index square, uint8_t c
         });
     }
     //King side White Castle
-    if((castlingRights & 0b0001 and square == e1) or castlingRights & 0b0100 and square == e8 and board.getBitboard()
-        & Bit(square + 1) and board.getBitboard() & Bit(square + 2)) {
+    if(((castlingRights & 0b0001 and square == e1) or (castlingRights & 0b0100 and square == e8)) and  not (board.getBitboard()
+        & Bit(square + 1)) and not (board.getBitboard() & Bit(square + 2))) {
         moves[i++] = (Move{
                 square,                                             // origin
                 static_cast<Square_index >(square+2),               // destination
