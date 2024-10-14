@@ -13,21 +13,21 @@ class moveGen {
 public:
     moveGen();
 
-    array<Move, 256> pawnMove(Square_index square, Color color, Bitboard allies, Bitboard enemies, Square_index passant);
+    void pawnMove(array<Move, 256> &moves, Square_index square, Color color, Bitboard allies, Bitboard enemies, Square_index passant);
 
-    array<Move, 256> knightMove(Square_index square,Bitboard allies = Bitboard());
+    void knightMove(array<Move, 256> &moves, Square_index square,Bitboard allies = Bitboard());
 
-    array<Move, 256> bishopMove(Square_index square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
+    void bishopMove(array<Move, 256> &moves, Square_index square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
 
-    array<Move, 256> rookMove(Square_index square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
+    void rookMove(array<Move, 256> &moves, Square_index square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
 
-    array<Move, 256> queenMove(Square_index square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
+    void queenMove(array<Move, 256> &moves, Square_index square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
 
-    array<Move, 256> kingMove(Square_index square, Bitboard allies = Bitboard(),Bitboard enemies = Bitboard());
+    void kingMove(array<Move, 256> &moves, Square_index square, Bitboard allies = Bitboard(),Bitboard enemies = Bitboard());
 
-    array<Move, 256> CastleMove(Square_index square, uint8_t castlingRights);
+    void CastleMove(array<Move, 256> &moves, Square_index square, uint8_t castlingRights);
 
-    array<Move, 256> pieceMove(Square_index  square, vector<pair<int, int>> directions,
+    void pieceMove(array<Move, 256> &moves, Square_index  square, vector<pair<int, int>> directions,
         bool slide, Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
 };
 

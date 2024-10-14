@@ -8,7 +8,7 @@
 #include <unordered_map>
 
 
-class game {
+class Game {
 private:
     Bitboard white,black,pawn,knight,bishop,rook,queen,king;
     array<reference_wrapper<Bitboard> , 8> boards = {white,black,pawn,knight,bishop,rook,queen,king};
@@ -19,11 +19,11 @@ private:
     Square_index passant = a1;
     uint8_t can_castle = 0b1111; // Most significant bits (3 & 4) - Black can castle | Left bit (can castle to left)
 public:
-    game();
+    Game();
 
     array<reference_wrapper<Bitboard> , 8> getBitboards();
 
-    void movePiece(Square_index  initial_square, Square_index  target_square, Bitboard &board);
+    void makeMove(Move move);
 
     bool getCurrentPlayer();
 

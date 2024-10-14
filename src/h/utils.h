@@ -54,6 +54,13 @@ struct Move {
     utils::Square_index  origin;
     utils::Square_index  destination;
     utils::Move_type type;
+    utils::Piece_index promotion = utils::i_pawn;
+
+    bool operator==(const Move& other) const {
+        return (this->origin == other.origin) &&
+               (this->destination == other.destination) &&
+               (this->type == other.type);
+    };
 };
 
 inline string squareToString(utils::Square_index square) {
