@@ -25,6 +25,16 @@ public:
 
     void makeMove(Move move);
 
+    void promotionMove(Move move);
+
+    void castleMove(Move move);
+
+    void passantMove(Move move);
+
+    void normalMove(Move move);
+
+    Square_index getPassant();
+
     bool getCurrentPlayer();
 
     void print();

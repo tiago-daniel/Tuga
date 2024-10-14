@@ -17,19 +17,21 @@ void moveGen::pawnMove(array<Move, 256> &moves, Square_index square, Color color
     Bitboard board = Bitboard(allies.getBitboard() | enemies.getBitboard());
     Move_type type = NORMAL;
 
-    if (color == c_white and not (board.getBitboard() & Bit(square+8))) {
+    if (color == c_white) {
         if(square<(64-8) and square>=(64-16)) {
             type = PROMOTION;
-            for (Piece_index piece: pieces) {
-                moves[i++] = (Move{
-                    square,                                             // origin
-                    static_cast<Square_index >(square+8),               // destination
-                    PROMOTION,                                           // type
-                    piece
-                });
+            if (not (board.getBitboard() & Bit(square+8))) {
+                for (Piece_index piece: pieces) {
+                    moves[i++] = (Move{
+                        square,                                             // origin
+                        static_cast<Square_index >(square+8),               // destination
+                        PROMOTION,                                           // type
+                        piece
+                    });
+                }
             }
         }
-        else {
+        else if (not (board.getBitboard() & Bit(square+8))) {
             moves[i++] = (Move{
                 square,                                             // origin
                 static_cast<Square_index >(square+8),               // destination
@@ -39,7 +41,7 @@ void moveGen::pawnMove(array<Move, 256> &moves, Square_index square, Color color
         // Single move
 
         // Double move
-        if (square<16 and square>=8 and not (board.getBitboard() & Bit(square+16))) {
+        if (square<16 and square>=8 and not (board.getBitboard() & Bit(square+16)) and not (board.getBitboard() & Bit(square+8))) {
             moves[i++] = (Move{
                 square,                                             // origin
                 static_cast<Square_index >(square+16),              // destination
@@ -88,7 +90,7 @@ void moveGen::pawnMove(array<Move, 256> &moves, Square_index square, Color color
         }
 
         // En passant
-        if ((square == passant+1 and square % 8 != 7) or (square == passant-1 and square % 8 != 0)) {
+        if ((square == passant+1 and square % 8 != 0) or (square == passant-1 and square % 8 != 7)) {
             moves[i++] = (Move{
                     square,                                             // origin
                     static_cast<Square_index >(passant+8),              // destination
@@ -97,20 +99,22 @@ void moveGen::pawnMove(array<Move, 256> &moves, Square_index square, Color color
         }
     }
     // black pieces
-    else if (not (board.getBitboard() & Bit(square-8))) {
+    else if (color == c_black) {
             // Promotion
             if(square<(16) and square>=(8)) {
                 type = PROMOTION;
-                for (Piece_index piece: pieces) {
-                    moves[i++] = (Move{
-                        square,                                             // origin
-                        static_cast<Square_index >(square+8),               // destination
-                        PROMOTION,                                           // type
-                        piece
-                    });
+                if (not (board.getBitboard() & Bit(square-8))) {
+                    for (Piece_index piece: pieces) {
+                        moves[i++] = (Move{
+                            square,                                             // origin
+                            static_cast<Square_index >(square+8),               // destination
+                            PROMOTION,                                           // type
+                            piece
+                        });
+                    }
                 }
             }
-            else {
+            else if (not (board.getBitboard() & Bit(square-8))){
                 //Single Move
                 moves[i++] = (Move{
                     square,                                             // origin
@@ -119,7 +123,7 @@ void moveGen::pawnMove(array<Move, 256> &moves, Square_index square, Color color
                 });
             }
             // Double move
-            if(square<(64-8) and square>=(64-16) and not (board.getBitboard() & Bit(square-16))) {
+            if(square<(64-8) and square>=(64-16) and not (board.getBitboard() & Bit(square-16)) and not (board.getBitboard() & Bit(square-8))) {
                 moves[i++] = (Move{
                     square,                                             // origin
                     static_cast<Square_index >(square-16),              // destination
@@ -168,7 +172,7 @@ void moveGen::pawnMove(array<Move, 256> &moves, Square_index square, Color color
             }
 
             // En passant
-            if ((square == passant+1 and square % 8 != 7) or (square == passant-1 and square % 8 != 0)) {
+            if ((square == passant+1 and square % 8 != 0) or (square == passant-1 and square % 8 != 7)) {
                 moves[i++] = (Move{
                         square,                                             // origin
                         static_cast<Square_index >(passant-8),              // destination

@@ -31,23 +31,117 @@ array<reference_wrapper<Bitboard> , 8> Game::getBitboards() {
     return this->boards;
 }
 
-
+Square_index Game::getPassant() {
+    return this->passant;
+}
 
 void Game::makeMove(Move move) {
-    this->passant = a1;
+    switch (move.type) {
+        case EN_PASSANT:
+            passantMove(move);
+            break;
+        case NORMAL:
+            normalMove(move);
+            break;
+        case CASTLE:
+            castleMove(move);
+            break;
+        default:
+            promotionMove(move);
+            break;
+    }
+    this->current_player ^= 1;
+    this->draw_count++;
+
+}
+
+void Game::promotionMove(Move move) {
     for (auto board : this->boards) {
+        if (board.get().getBitboard() & Bit(move.destination)) {
+            this->draw_count = 0;
+            board.get().removeBit(move.destination);
+        }
+        else if (board.get().getBitboard() & Bit(move.origin)) {
+            board.get().removeBit(move.origin);
+            if (board.get().getBitboard() != this->boards[i_pawn].get().getBitboard()) {
+                board.get().addBit(move.destination);
+            }
+        }
+    }
+    this->boards[move.promotion].get().addBit(move.destination);
+    pieces[move.origin] = i_empty;
+    pieces[move.destination] = move.promotion;
+}
+
+void Game::castleMove(Move move) {
+    if (move.origin + 2 == move.destination) {
+        for (auto board : this->boards) {
+            if (board.get().getBitboard() & Bit(move.origin)) {
+                board.get().removeBit(move.origin);
+                board.get().addBit(move.destination);
+            }
+            if (board.get().getBitboard() & Bit(move.origin+3)) {
+                board.get().removeBit(move.origin+3);
+                board.get().addBit(move.destination-1);
+            }
+        }
+        pieces[move.destination] = i_king;
+        pieces[move.origin] = i_empty;
+        pieces[move.destination+1] = i_empty;
+        pieces[move.destination-1] = i_rook;
+    }
+    else {
+        for (auto board : this->boards) {
+            if (board.get().getBitboard() & Bit(move.origin)) {
+                board.get().removeBit(move.origin);
+                board.get().addBit(move.destination);
+            }
+            if (board.get().getBitboard() & Bit(move.destination-2)) {
+                board.get().removeBit(move.destination-2);
+                board.get().addBit(move.destination+1);
+            }
+        }
+        pieces[move.destination] = i_king;
+        pieces[move.origin] = i_empty;
+        pieces[move.destination+1] = i_rook;
+        pieces[move.destination-2] = i_empty;
+    }
+}
+
+void Game::passantMove(Move move) {
+    for (auto board : this->boards) {
+        board.get().removeBit(this->passant);
         if (board.get().getBitboard() & Bit(move.origin)) {
             board.get().removeBit(move.origin);
             board.get().addBit(move.destination);
         }
     }
     pieces[move.destination] = pieces[move.origin];
-    pieces[move.origin] = pieces[i_empty];
-    if (pieces[move.destination] == i_pawn and move.destination == move.origin + 16) {
-        passant = move.destination;                     // make en passant square
+    pieces[move.origin] = i_empty;
+    pieces[this->passant] = i_empty;
+    passant = a1;
+    this->draw_count = 0;
+}
+
+void Game::normalMove(Move move) {
+    for (auto board : this->boards) {
+        if (board.get().getBitboard() & Bit(move.destination)) {
+            this->draw_count = 0;
+            board.get().removeBit(move.destination);
+        }
+        if (board.get().getBitboard() & Bit(move.origin)) {
+            board.get().removeBit(move.origin);
+            board.get().addBit(move.destination);
+        }
     }
-    this->current_player ^= 1;
-    this->draw_count++;
+
+        pieces[move.destination] = pieces[move.origin];  // Copy piece from origin to destination
+        pieces[move.origin] = i_empty;  // Set origin square as empty
+
+        passant = a1;
+        if (pieces[move.destination] == i_pawn and (move.destination == move.origin + 16 or move.destination == move.origin - 16)) {
+            passant = move.destination;                     // make en passant square
+    }
 }
 
 bool Game::getCurrentPlayer() {
