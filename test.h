@@ -6,10 +6,9 @@
 #define TEST_H
 
 #include <cassert>
-#include "h/game.h"
+#include "h/Position.h"
 
 using namespace std;
-using namespace utils;
 namespace test {
     void testEmptyBitboard() {
         Bitboard b;
@@ -41,7 +40,7 @@ namespace test {
 /*
     void testMove() {
         auto b = Bitboard(vector{a2});
-        Game game;
+        Position game;
         assert(b.getBitboard()==Bit(a2));
         game.makeMove(a2,b2,b);
         game.makeMove(Move(b2,c2,b));

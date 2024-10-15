@@ -6,38 +6,42 @@
 
 Bitboard::Bitboard() = default;
 
-Bitboard::Bitboard(const uint64_t positions=0) {
+Bitboard::Bitboard(const unsigned int long long positions=0) {
     this->positions = positions;
 }
 
-Bitboard::Bitboard(vector<Square_index> squares) {
-    for (Square_index square:squares) {
+Bitboard::Bitboard(std::vector<Square> squares) {
+    for (Square square:squares) {
         this->positions += Bit(square);
     }
 }
 
-void Bitboard::setBitboard(const uint64_t positions) {
+void Bitboard::setBitboard(const unsigned int long long positions) {
     this->positions = positions;
 }
 
-uint64_t Bitboard::getBitboard() const {
+bool Bitboard::hasBit(int bit) {
+    return positions & Bit(bit);
+}
+
+unsigned int long long Bitboard::getBitboard() const {
     return this->positions;
 }
 
-void Bitboard::removeBit(uint8_t bit) {
-    this->positions &= (uint64_t)-1-Bit(bit);
+void Bitboard::removeBit(int bit) {
+    this->positions &= ~Bit(bit);
 }
 
-void Bitboard::addBit(uint8_t bit) {
+void Bitboard::addBit(int bit) {
     this->positions |= Bit(bit);
 }
 
 void Bitboard::print() {
     for (int row = 7; row >= 0; row--) {
         for (int col = 0; col < 8; col++) {
-            uint8_t n = row * 8 + col;
-            cout << bool(this->getBitboard() & Bit(n)) << " ";
+            int n = row * 8 + col;
+            std::cout << (this->hasBit(n) ? "1" : "0") << " ";
         }
-        cout << endl;
+        std::cout << std::endl;
     }
 }
