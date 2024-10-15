@@ -8,23 +8,23 @@
 
 #include "h/bitboard.h"
 
-moveGen::moveGen() = default;
+MoveGen::MoveGen() = default;
 
-void moveGen::pawnMove(array<Move, 256> &moves, Square_index square, Color color, Bitboard allies, Bitboard enemies, Square_index passant) {
-    uint8_t i = 0;
-    array<Piece_index, 4> pieces = {i_queen, i_rook, i_bishop, i_knight};
+void MoveGen::pawnMove(std::array<Move, 256> &moves, Square square, Color color, Bitboard allies, Bitboard enemies, Square passant) {
+    int i = 0;
+    std::array pieces = {QUEEN, ROOK, BISHOP, KNIGHT};
     while (moves[i] != Move()) {i++;}
     Bitboard board = Bitboard(allies.getBitboard() | enemies.getBitboard());
-    Move_type type = NORMAL;
+    MoveType type = NORMAL;
 
-    if (color == c_white) {
+    if (color == WHITE) {
         if(square<(64-8) and square>=(64-16)) {
             type = PROMOTION;
             if (not (board.getBitboard() & Bit(square+8))) {
-                for (Piece_index piece: pieces) {
+                for (Piece piece: pieces) {
                     moves[i++] = (Move{
                         square,                                             // origin
-                        static_cast<Square_index >(square+8),               // destination
+                        static_cast<Square >(square+8),               // destination
                         PROMOTION,                                           // type
                         piece
                     });
@@ -34,7 +34,7 @@ void moveGen::pawnMove(array<Move, 256> &moves, Square_index square, Color color
         else if (not (board.getBitboard() & Bit(square+8))) {
             moves[i++] = (Move{
                 square,                                             // origin
-                static_cast<Square_index >(square+8),               // destination
+                static_cast<Square >(square+8),               // destination
                 NORMAL                                                // type
             });
         }
@@ -44,7 +44,7 @@ void moveGen::pawnMove(array<Move, 256> &moves, Square_index square, Color color
         if (square<16 and square>=8 and not (board.getBitboard() & Bit(square+16)) and not (board.getBitboard() & Bit(square+8))) {
             moves[i++] = (Move{
                 square,                                             // origin
-                static_cast<Square_index >(square+16),              // destination
+                static_cast<Square >(square+16),              // destination
                 NORMAL                                              // type
             });
         }
@@ -52,10 +52,10 @@ void moveGen::pawnMove(array<Move, 256> &moves, Square_index square, Color color
         // Capture
         if(enemies.getBitboard() & Bit(square+7) and square % 8 != 0) {
             if (type == PROMOTION) {
-                for (Piece_index piece: pieces) {
+                for (Piece piece: pieces) {
                     moves[i++] = (Move{
                         square,                                             // origin
-                        static_cast<Square_index >(square+7),               // destination
+                        static_cast<Square >(square+7),               // destination
                         PROMOTION,                                           // type
                         piece
                     });
@@ -64,17 +64,17 @@ void moveGen::pawnMove(array<Move, 256> &moves, Square_index square, Color color
             else {
                 moves[i++] = (Move{
                     square,                                             // origin
-                    static_cast<Square_index >(square+7),               // destination
+                    static_cast<Square >(square+7),               // destination
                     NORMAL                                                // type
                 });
             }
         }
         if(enemies.getBitboard() & Bit(square+9) and square % 8 != 7) {
             if (type == PROMOTION) {
-                for (Piece_index piece: pieces) {
+                for (Piece piece: pieces) {
                     moves[i++] = (Move{
                         square,                                             // origin
-                        static_cast<Square_index >(square+9),               // destination
+                        static_cast<Square >(square+9),               // destination
                         PROMOTION,                                           // type
                         piece
                     });
@@ -83,7 +83,7 @@ void moveGen::pawnMove(array<Move, 256> &moves, Square_index square, Color color
             else {
                 moves[i++] = (Move{
                     square,                                             // origin
-                    static_cast<Square_index >(square+9),               // destination
+                    static_cast<Square >(square+9),               // destination
                     NORMAL                                                // type
                 });
             }
@@ -93,21 +93,21 @@ void moveGen::pawnMove(array<Move, 256> &moves, Square_index square, Color color
         if ((square == passant+1 and square % 8 != 0) or (square == passant-1 and square % 8 != 7)) {
             moves[i++] = (Move{
                     square,                                             // origin
-                    static_cast<Square_index >(passant+8),              // destination
+                    static_cast<Square >(passant+8),              // destination
                     EN_PASSANT                                          // type
             });
         }
     }
     // black pieces
-    else if (color == c_black) {
+    else if (color == BLACK) {
             // Promotion
             if(square<(16) and square>=(8)) {
                 type = PROMOTION;
                 if (not (board.getBitboard() & Bit(square-8))) {
-                    for (Piece_index piece: pieces) {
+                    for (Piece piece: pieces) {
                         moves[i++] = (Move{
                             square,                                             // origin
-                            static_cast<Square_index >(square+8),               // destination
+                            static_cast<Square >(square+8),               // destination
                             PROMOTION,                                           // type
                             piece
                         });
@@ -118,7 +118,7 @@ void moveGen::pawnMove(array<Move, 256> &moves, Square_index square, Color color
                 //Single Move
                 moves[i++] = (Move{
                     square,                                             // origin
-                    static_cast<Square_index >(square-8),               // destination
+                    static_cast<Square >(square-8),               // destination
                     NORMAL                                                // type
                 });
             }
@@ -126,7 +126,7 @@ void moveGen::pawnMove(array<Move, 256> &moves, Square_index square, Color color
             if(square<(64-8) and square>=(64-16) and not (board.getBitboard() & Bit(square-16)) and not (board.getBitboard() & Bit(square-8))) {
                 moves[i++] = (Move{
                     square,                                             // origin
-                    static_cast<Square_index >(square-16),              // destination
+                    static_cast<Square >(square-16),              // destination
                     NORMAL                                              // type
                 });
             }
@@ -134,10 +134,10 @@ void moveGen::pawnMove(array<Move, 256> &moves, Square_index square, Color color
             // Capture
             if(enemies.getBitboard() & Bit(square-7) and (square % 8 != 7)) {
                 if (type == PROMOTION) {
-                    for (Piece_index piece: pieces) {
+                    for (Piece piece: pieces) {
                         moves[i++] = (Move{
                             square,                                             // origin
-                            static_cast<Square_index >(square-7),               // destination
+                            static_cast<Square >(square-7),               // destination
                             PROMOTION,                                           // type
                             piece
                         });
@@ -146,17 +146,17 @@ void moveGen::pawnMove(array<Move, 256> &moves, Square_index square, Color color
                 else {
                     moves[i++] = (Move{
                         square,                                             // origin
-                        static_cast<Square_index >(square-7),               // destination
+                        static_cast<Square >(square-7),               // destination
                         NORMAL                                                // type
                     });
                 }
             }
             if(enemies.getBitboard() & Bit(square-9) and (square % 8 != 0)) {
                 if (type == PROMOTION) {
-                    for (Piece_index piece: pieces) {
+                    for (Piece piece: pieces) {
                         moves[i++] = (Move{
                             square,                                             // origin
-                            static_cast<Square_index >(square-9),               // destination
+                            static_cast<Square >(square-9),               // destination
                             PROMOTION,                                           // type
                             piece
                         });
@@ -165,7 +165,7 @@ void moveGen::pawnMove(array<Move, 256> &moves, Square_index square, Color color
                 else {
                     moves[i++] = (Move{
                         square,                                             // origin
-                        static_cast<Square_index >(square-9),               // destination
+                        static_cast<Square >(square-9),               // destination
                         NORMAL                                                // type
                     });
                 }
@@ -175,15 +175,15 @@ void moveGen::pawnMove(array<Move, 256> &moves, Square_index square, Color color
             if ((square == passant+1 and square % 8 != 0) or (square == passant-1 and square % 8 != 7)) {
                 moves[i++] = (Move{
                         square,                                             // origin
-                        static_cast<Square_index >(passant-8),              // destination
+                        static_cast<Square >(passant-8),              // destination
                         EN_PASSANT                                          // type
                 });
             }
         }
 }
 
-void moveGen::knightMove(array<Move, 256> &moves, Square_index square, Bitboard allies){
-    vector<pair<int, int>> directions = {
+void MoveGen::knightMove(std::array<Move, 256> &moves, Square square, Bitboard allies){
+    std::vector<std::pair<int, int>> directions = {
         {-2, -1}, {-2, 1},  // Two up, one left/right
         {-1, -2}, {-1, 2},  // One up, two left/right
         {1, -2}, {1, 2},    // One down, two left/right
@@ -192,8 +192,8 @@ void moveGen::knightMove(array<Move, 256> &moves, Square_index square, Bitboard 
     pieceMove(moves, square, directions, false, allies);
 }
 
-void moveGen::bishopMove(array<Move, 256> &moves, Square_index square, Bitboard allies, Bitboard enemies) {
-    vector<pair<int, int>> directions = {
+void MoveGen::bishopMove(std::array<Move, 256> &moves, Square square, Bitboard allies, Bitboard enemies) {
+    std::vector<std::pair<int, int>> directions = {
         {-1, -1},
         {-1, 1},
         {1, -1},
@@ -203,8 +203,8 @@ void moveGen::bishopMove(array<Move, 256> &moves, Square_index square, Bitboard 
     pieceMove(moves,square, directions, true, allies, enemies);
 }
 
-void moveGen::rookMove(array<Move, 256> &moves, Square_index square, Bitboard allies, Bitboard enemies) {
-    vector<pair<int, int>> directions = {
+void MoveGen::rookMove(std::array<Move, 256> &moves, Square square, Bitboard allies, Bitboard enemies) {
+    std::vector<std::pair<int, int>> directions = {
         {0, -1},
         {-1, 0},
         {1, 0},
@@ -214,8 +214,8 @@ void moveGen::rookMove(array<Move, 256> &moves, Square_index square, Bitboard al
     pieceMove(moves,square, directions, true, allies, enemies);
 }
 
-void moveGen::queenMove(array<Move, 256> &moves, Square_index square, Bitboard allies, Bitboard enemies) {
-    vector<pair<int, int>> directions = {
+void MoveGen::queenMove(std::array<Move, 256> &moves, Square square, Bitboard allies, Bitboard enemies) {
+    std::vector<std::pair<int, int>> directions = {
         {-1, -1},
         {-1, 1},
         {1, -1},
@@ -229,8 +229,8 @@ void moveGen::queenMove(array<Move, 256> &moves, Square_index square, Bitboard a
     pieceMove(moves,square, directions, true, allies, enemies);
 }
 
-void moveGen::kingMove(array<Move, 256> &moves, Square_index square, Bitboard allies, Bitboard enemies) {
-    vector<pair<int, int>> directions = {
+void MoveGen::kingMove(std::array<Move, 256> &moves, Square square, Bitboard allies) {
+    std::vector<std::pair<int, int>> directions = {
         {-1, -1},
         {-1, 1},
         {1, -1},
@@ -244,8 +244,8 @@ void moveGen::kingMove(array<Move, 256> &moves, Square_index square, Bitboard al
     pieceMove(moves,square, directions, false, allies);
 }
 
-void moveGen::castleMove(array<Move, 256> &moves, Square_index square, uint8_t castlingRights, Bitboard allies, Bitboard enemies) {
-    uint8_t i = 0;
+void MoveGen::castleMove(std::array<Move, 256> &moves, Square square, int castlingRights, Bitboard allies, Bitboard enemies) {
+    int i = 0;
     auto board = Bitboard(allies.getBitboard() | enemies.getBitboard());
     while (moves[i] != Move()) {i++;}
     // Queen side White Castle
@@ -253,7 +253,7 @@ void moveGen::castleMove(array<Move, 256> &moves, Square_index square, uint8_t c
         and not (board.getBitboard() & Bit(square - 1)) and not (board.getBitboard() & Bit(square - 2)) and  not (board.getBitboard() & Bit(square - 3))) {
         moves[i++] = (Move{
                 square,                                             // origin
-                static_cast<Square_index >(square-2),               // destination
+                static_cast<Square >(square-2),               // destination
                 CASTLE                                              // type
         });
     }
@@ -262,16 +262,16 @@ void moveGen::castleMove(array<Move, 256> &moves, Square_index square, uint8_t c
         & Bit(square + 1)) and not (board.getBitboard() & Bit(square + 2))) {
         moves[i++] = (Move{
                 square,                                             // origin
-                static_cast<Square_index >(square+2),               // destination
+                static_cast<Square >(square+2),               // destination
                 CASTLE                                              // type
         });
     }
 }
 
 
-void moveGen::pieceMove(array<Move, 256> &moves, Square_index square, vector<pair<int, int>> directions,
+void MoveGen::pieceMove(std::array<Move, 256> &moves, Square square, std::vector<std::pair<int, int>> directions,
     bool slide, Bitboard allies, Bitboard enemies) {
-    uint8_t i = 0;
+    int i = 0;
     while (moves[i] != Move()) {i++;}
 
     // Get the current rank and file
@@ -296,7 +296,7 @@ void moveGen::pieceMove(array<Move, 256> &moves, Square_index square, vector<pai
             }
             moves[i++] = (Move{
                 square,                                             // origin
-                static_cast<Square_index>(newRank * 8 + newFile),     // destination
+                static_cast<Square>(newRank * 8 + newFile),     // destination
                 NORMAL                                              // type
             });
             if (enemies.getBitboard() & Bit((newRank * 8 + newFile))) {

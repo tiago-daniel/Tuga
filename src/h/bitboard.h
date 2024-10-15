@@ -5,25 +5,21 @@
 #ifndef BITBOARD_H
 #define BITBOARD_H
 
-#include <array>
 #include <vector>
 #include "utils.h"
 
-using namespace utils;
-using namespace std;
-
 class Bitboard {
-private:
-    uint64_t positions = 0;
+    int positions = 0;
 public:
     Bitboard();
-    explicit Bitboard(uint64_t positions);
-    explicit Bitboard(vector<Square_index> squares);
-    uint64_t getBitboard() const;
-    void removeBit(uint8_t bit);
-    void addBit(uint8_t bit);
+    explicit Bitboard(unsigned int long long positions);
+    explicit Bitboard(std::vector<Square> squares);
+    unsigned int long long getBitboard() const;
+    void removeBit(int bit);
+    void addBit(int bit);
     void print();
-    void setBitboard(uint64_t positions);
+    void setBitboard(unsigned int long long positions);
+    bool hasBit(int bit);
 };
 
 
