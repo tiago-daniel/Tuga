@@ -44,6 +44,8 @@ public:
     void print();
 
     std::array<Move, 256> allMoves(bool player);
+
+    bool Position::isKingInCheck(bool player);
 };
 
 

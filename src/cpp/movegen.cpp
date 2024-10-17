@@ -248,7 +248,7 @@ void MoveGen::castleMove(std::array<Move, 256> &moves, Square square, int castli
     int i = 0;
     auto board = Bitboard(allies.getBitboard() | enemies.getBitboard());
     while (moves[i] != Move()) {i++;}
-    // Queen side White Castle
+    // Queen side Castle
     if(((castlingRights & 0b0010 and square == e1) or (castlingRights & 0b1000 and square == e8))
         and not (board.getBitboard() & Bit(square - 1)) and not (board.getBitboard() & Bit(square - 2)) and  not (board.getBitboard() & Bit(square - 3))) {
         moves[i++] = (Move{
@@ -257,7 +257,7 @@ void MoveGen::castleMove(std::array<Move, 256> &moves, Square square, int castli
                 CASTLE                                              // type
         });
     }
-    //King side White Castle
+    //King side Castle
     if(((castlingRights & 0b0001 and square == e1) or (castlingRights & 0b0100 and square == e8)) and  not (board.getBitboard()
         & Bit(square + 1)) and not (board.getBitboard() & Bit(square + 2))) {
         moves[i++] = (Move{

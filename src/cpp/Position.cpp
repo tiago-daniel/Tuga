@@ -268,3 +268,21 @@ std::array<Move, 256> Position::allMoves(bool player) {
     }
     return moves;
 }
+
+bool Position::isKingInCheck(bool player) {
+    Square kingSquare = a1;
+    for (int i = 0; i < 64; i++) {
+        if (pieces[i] == KING && colors[player].hasBit(i)) {
+            kingSquare = static_cast<Square>(i);
+            break;
+        }
+    }
+
+    std::array<Move, 256> enemyMoves = this->allMoves(player ^ 1);
+    for (const auto& move : enemyMoves) {
+        if (move.destination == kingSquare) {
+            return true;
+        }
+    }
+    return false;
+}
