@@ -17,7 +17,7 @@ int main() {
   std::vector<sf::Text> moveTexts;
   auto pieceTextures = draw.loadAllTextures();
   // Create a window with specified dimensions
-  sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Chess Board with Moves");
+  sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Chess Board with Moves", sf::Style::Close);
 
   // Example possible moves (you can modify this based on your game logic)
   auto moves = game.allMoves(game.getCurrentPlayer());
