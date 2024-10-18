@@ -16,21 +16,21 @@ class MoveGen {
 public:
     MoveGen();
 
-    void pawnMove(MoveList &moves, Square square, Color color, Bitboard allies, Bitboard enemies, Square passant);
+    void pawnMove(MoveList &moves, Square square, bool color, Bitboard allies, Bitboard enemies, Square passant);
 
-    void knightMove(MoveList &moves, Square square,Bitboard allies = Bitboard());
+    void knightMove(MoveList &moves, bool player, Square square,Bitboard allies = Bitboard());
 
-    void bishopMove(MoveList &moves, Square square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
+    void bishopMove(MoveList &moves, bool player, Square square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
 
-    void rookMove(MoveList &moves, Square square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
+    void rookMove(MoveList &moves, bool player, Square square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
 
-    void queenMove(MoveList &moves, Square square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
+    void queenMove(MoveList &moves, bool player, Square square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
 
-    void kingMove(MoveList &moves, Square square, Bitboard allies = Bitboard());
+    void kingMove(MoveList &moves, bool player, Square square, Bitboard allies = Bitboard());
 
-    void castleMove(MoveList &moves, Square square,int castlingRights, Bitboard allies = Bitboard(),Bitboard enemies = Bitboard());
+    void castleMove(MoveList &moves, bool player, Square square,int castlingRights, Bitboard allies = Bitboard(),Bitboard enemies = Bitboard());
 
-    void pieceMove(MoveList &moves, Square  square, std::span<std::pair<int, int>> directions,
+    void pieceMove(MoveList &moves, bool player, Square  square, std::span<std::pair<int, int>> directions,
         bool slide, Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
 };
 

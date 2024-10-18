@@ -7,7 +7,7 @@
 
 MoveGen::MoveGen() = default;
 
-void MoveGen::pawnMove(MoveList &moves, Square square, Color color, Bitboard allies, Bitboard enemies, Square passant) {
+void MoveGen::pawnMove(MoveList &moves, Square square, bool color, Bitboard allies, Bitboard enemies, Square passant) {
     std::array pieces = {QUEEN, ROOK, BISHOP, KNIGHT};
     Bitboard board = Bitboard(allies.getBitboard() | enemies.getBitboard());
     MoveType type = NORMAL;
@@ -20,6 +20,7 @@ void MoveGen::pawnMove(MoveList &moves, Square square, Color color, Bitboard all
                     moves.push(Move{
                         square,                                             // origin
                         static_cast<Square >(square+8),               // destination
+                        color,
                         PROMOTION,                                           // type
                         piece
                     });
@@ -30,6 +31,7 @@ void MoveGen::pawnMove(MoveList &moves, Square square, Color color, Bitboard all
             moves.push(Move{
                 square,                                             // origin
                 static_cast<Square >(square+8),               // destination
+                color,
                 NORMAL                                                // type
             });
         }
@@ -40,6 +42,7 @@ void MoveGen::pawnMove(MoveList &moves, Square square, Color color, Bitboard all
             moves.push(Move{
                 square,                                             // origin
                 static_cast<Square >(square+16),              // destination
+                color,
                 NORMAL                                              // type
             });
         }
@@ -51,6 +54,7 @@ void MoveGen::pawnMove(MoveList &moves, Square square, Color color, Bitboard all
                     moves.push(Move{
                         square,                                             // origin
                         static_cast<Square >(square+7),               // destination
+                        color,
                         PROMOTION,                                           // type
                         piece
                     });
@@ -60,6 +64,7 @@ void MoveGen::pawnMove(MoveList &moves, Square square, Color color, Bitboard all
                 moves.push(Move{
                     square,                                             // origin
                     static_cast<Square >(square+7),               // destination
+                    color,
                     NORMAL                                                // type
                 });
             }
@@ -70,6 +75,7 @@ void MoveGen::pawnMove(MoveList &moves, Square square, Color color, Bitboard all
                     moves.push(Move{
                         square,                                             // origin
                         static_cast<Square >(square+9),               // destination
+                        color,
                         PROMOTION,                                           // type
                         piece
                     });
@@ -79,6 +85,7 @@ void MoveGen::pawnMove(MoveList &moves, Square square, Color color, Bitboard all
                 moves.push(Move{
                     square,                                             // origin
                     static_cast<Square >(square+9),               // destination
+                    color,
                     NORMAL                                                // type
                 });
             }
@@ -89,6 +96,7 @@ void MoveGen::pawnMove(MoveList &moves, Square square, Color color, Bitboard all
             moves.push(Move{
                     square,                                             // origin
                     static_cast<Square >(passant+8),              // destination
+                    color,
                     EN_PASSANT                                          // type
             });
         }
@@ -103,6 +111,7 @@ void MoveGen::pawnMove(MoveList &moves, Square square, Color color, Bitboard all
                         moves.push(Move{
                             square,                                             // origin
                             static_cast<Square >(square+8),               // destination
+                            color,
                             PROMOTION,                                           // type
                             piece
                         });
@@ -114,6 +123,7 @@ void MoveGen::pawnMove(MoveList &moves, Square square, Color color, Bitboard all
                 moves.push(Move{
                     square,                                             // origin
                     static_cast<Square >(square-8),               // destination
+                    color,
                     NORMAL                                                // type
                 });
             }
@@ -122,6 +132,7 @@ void MoveGen::pawnMove(MoveList &moves, Square square, Color color, Bitboard all
                 moves.push(Move{
                     square,                                             // origin
                     static_cast<Square >(square-16),              // destination
+                    color,
                     NORMAL                                              // type
                 });
             }
@@ -133,6 +144,7 @@ void MoveGen::pawnMove(MoveList &moves, Square square, Color color, Bitboard all
                         moves.push(Move{
                             square,                                             // origin
                             static_cast<Square >(square-7),               // destination
+                            color,
                             PROMOTION,                                           // type
                             piece
                         });
@@ -142,6 +154,7 @@ void MoveGen::pawnMove(MoveList &moves, Square square, Color color, Bitboard all
                     moves.push(Move{
                         square,                                             // origin
                         static_cast<Square >(square-7),               // destination
+                        color,
                         NORMAL                                                // type
                     });
                 }
@@ -152,6 +165,7 @@ void MoveGen::pawnMove(MoveList &moves, Square square, Color color, Bitboard all
                         moves.push(Move{
                             square,                                             // origin
                             static_cast<Square >(square-9),               // destination
+                            color,
                             PROMOTION,                                           // type
                             piece
                         });
@@ -161,6 +175,7 @@ void MoveGen::pawnMove(MoveList &moves, Square square, Color color, Bitboard all
                     moves.push(Move{
                         square,                                             // origin
                         static_cast<Square >(square-9),               // destination
+                        color,
                         NORMAL                                                // type
                     });
                 }
@@ -171,13 +186,14 @@ void MoveGen::pawnMove(MoveList &moves, Square square, Color color, Bitboard all
                 moves.push(Move{
                         square,                                             // origin
                         static_cast<Square >(passant-8),              // destination
+                        color,
                         EN_PASSANT                                          // type
                 });
             }
         }
 }
 
-void MoveGen::knightMove(MoveList &moves, Square square, Bitboard allies){
+void MoveGen::knightMove(MoveList &moves, bool player, Square square, Bitboard allies){
     std::array directions = {
         std::make_pair(-2, -1), std::make_pair(-2, 1),
         std::make_pair(-1, -2), std::make_pair(-1, 2),
@@ -185,28 +201,28 @@ void MoveGen::knightMove(MoveList &moves, Square square, Bitboard allies){
         std::make_pair(2, -1), std::make_pair(2, 1)
     };
 
-    pieceMove(moves, square, directions, false, allies);
+    pieceMove(moves,player, square, directions, false, allies);
 }
 
-void MoveGen::bishopMove(MoveList &moves, Square square, Bitboard allies, Bitboard enemies) {
+void MoveGen::bishopMove(MoveList &moves, bool player, Square square, Bitboard allies, Bitboard enemies) {
     std::array directions = {
         std::make_pair(-1, -1), std::make_pair(-1, 1),
         std::make_pair(1, -1), std::make_pair(1, 1),
     };
 
-    pieceMove(moves,square, directions, true, allies, enemies);
+    pieceMove(moves,player,square, directions, true, allies, enemies);
 }
 
-void MoveGen::rookMove(MoveList &moves, Square square, Bitboard allies, Bitboard enemies) {
+void MoveGen::rookMove(MoveList &moves, bool player, Square square, Bitboard allies, Bitboard enemies) {
     std::array directions = {
         std::make_pair(0, -1), std::make_pair(0, 1),
         std::make_pair(-1, 0), std::make_pair(0, 1),
     };
 
-    pieceMove(moves,square, directions, true, allies, enemies);
+    pieceMove(moves,player,square, directions, true, allies, enemies);
 }
 
-void MoveGen::queenMove(MoveList &moves, Square square, Bitboard allies, Bitboard enemies) {
+void MoveGen::queenMove(MoveList &moves, bool player, Square square, Bitboard allies, Bitboard enemies) {
     std::array directions = {
         std::make_pair(-1, -1), std::make_pair(-1, 1),
         std::make_pair(1, -1), std::make_pair(1, 1),
@@ -214,10 +230,10 @@ void MoveGen::queenMove(MoveList &moves, Square square, Bitboard allies, Bitboar
         std::make_pair(1, -1), std::make_pair(1, 1),
     };
 
-    pieceMove(moves,square, directions, true, allies, enemies);
+    pieceMove(moves,player,square, directions, true, allies, enemies);
 }
 
-void MoveGen::kingMove(MoveList &moves, Square square, Bitboard allies) {
+void MoveGen::kingMove(MoveList &moves, bool player, Square square, Bitboard allies) {
     std::array directions = {
         std::make_pair(-1, -1), std::make_pair(-1, 1),
         std::make_pair(1, -1), std::make_pair(1, 1),
@@ -225,10 +241,10 @@ void MoveGen::kingMove(MoveList &moves, Square square, Bitboard allies) {
         std::make_pair(1, -1), std::make_pair(1, 1),
     };
 
-    pieceMove(moves,square, directions, false, allies);
+    pieceMove(moves,player,square, directions, false, allies);
 }
 
-void MoveGen::castleMove(MoveList &moves, Square square, int castlingRights, Bitboard allies, Bitboard enemies) {
+void MoveGen::castleMove(MoveList &moves, bool player, Square square, int castlingRights, Bitboard allies, Bitboard enemies) {
     auto board = Bitboard(allies.getBitboard() | enemies.getBitboard());
     // Queen side Castle
     if(((castlingRights & 0b0010 and square == e1) or (castlingRights & 0b1000 and square == e8))
@@ -236,6 +252,7 @@ void MoveGen::castleMove(MoveList &moves, Square square, int castlingRights, Bit
         moves.push(Move{
                 square,                                             // origin
                 static_cast<Square >(square-2),               // destination
+                player,
                 CASTLE                                              // type
         });
     }
@@ -245,13 +262,14 @@ void MoveGen::castleMove(MoveList &moves, Square square, int castlingRights, Bit
         moves.push(Move{
                 square,                                             // origin
                 static_cast<Square >(square+2),               // destination
+                player,
                 CASTLE                                              // type
         });
     }
 }
 
 
-void MoveGen::pieceMove(MoveList &moves, Square square, std::span<std::pair<int, int>> directions,
+void MoveGen::pieceMove(MoveList &moves, bool player, Square square, std::span<std::pair<int, int>> directions,
     bool slide, Bitboard allies, Bitboard enemies) {
 
     // Get the current rank and file
@@ -276,7 +294,8 @@ void MoveGen::pieceMove(MoveList &moves, Square square, std::span<std::pair<int,
             }
             moves.push(Move{
                 square,                                             // origin
-                static_cast<Square>(newRank * 8 + newFile),     // destination
+                static_cast<Square>(newRank * 8 + newFile),         // destination
+                player,
                 NORMAL                                              // type
             });
             if (enemies.getBitboard() & Bit((newRank * 8 + newFile))) {

@@ -31,9 +31,9 @@
         KING
     };
 
-    enum Color {
-        WHITE,
-        BLACK
+    enum Color : bool {
+        WHITE = false,
+        BLACK = true
     };
 
     enum MoveType {
@@ -46,6 +46,7 @@
 struct Move {
     Square  origin;
     Square  destination;
+    bool player;
     MoveType type;
     Piece promotion = PAWN;
 
@@ -63,6 +64,18 @@ inline std::string squareToString(Square square) {
     return std::string(1, file) + rank;
 };
 
+inline std::string pieceToString(Piece piece) {
+    switch (piece) {
+        case PAWN:   return "Pawn";
+        case KNIGHT: return "Knight";
+        case BISHOP: return "Bishop";
+        case ROOK:   return "Rook";
+        case QUEEN:  return "Queen";
+        case KING:   return "King";
+        default:     return "Unknown Piece";
+    }
+}
+
 inline std::ostream& operator<<(std::ostream& os, const Square square) {
     os << squareToString(square);
     return os;
@@ -70,12 +83,20 @@ inline std::ostream& operator<<(std::ostream& os, const Square square) {
 
 inline std::ostream& operator<<(std::ostream& os, const Move& i) {
     if (i.promotion == PAWN) {
-        os << "(" << i.origin << ", " << i.destination << ", " << i.type << ")";
+        os << "(" << i.origin << ", " << i.destination << ", " << i.type << ", " << i.player << ")";
     }
     else {
-        os << "(" << i.origin << ", " << i.destination << ", " << i.type << ", " << int(i.promotion) << ")";
+        os << "(" << i.origin << ", " << i.destination << ", " << i.type << ", " << i.player << ", " << int(i.promotion) << ")";
     }
     return os;
 };
 
+inline std::string printMove(const Move& i) {
+    if (i.promotion == PAWN) {
+        return  squareToString(i.origin) + " " + squareToString(i.destination);
+    }
+    else {
+        return squareToString(i.origin) + " " + squareToString(i.destination) + " " + pieceToString(i.promotion);
+    }
+}
 #endif //UTILS_H
