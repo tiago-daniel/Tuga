@@ -21,7 +21,7 @@ public:
     std::array<sf::Texture, 12> loadAllTextures ();
     void drawChessBoard(sf::RenderWindow& window);
     sf::Vector2f squareToPosition(Square square);
-    void drawPieces(sf::RenderWindow& window, Position& game, const std::array<sf::Texture, 12>& pieceTextures);
+    void drawPieces(sf::RenderWindow& window, Position& game, const std::array<sf::Texture, 12>& pieceTextures, sf::Font& font);
     void drawPossibleMoves(sf::RenderWindow &window, const MoveList &moves, std::vector<sf::Text> &moveTexts, sf::Font &font);
     Square pixelToSquare(float x, float y);
 };

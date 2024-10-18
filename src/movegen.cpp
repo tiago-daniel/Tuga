@@ -206,8 +206,10 @@ void MoveGen::knightMove(MoveList &moves, bool player, Square square, Bitboard a
 
 void MoveGen::bishopMove(MoveList &moves, bool player, Square square, Bitboard allies, Bitboard enemies) {
     std::array directions = {
-        std::make_pair(-1, -1), std::make_pair(-1, 1),
-        std::make_pair(1, -1), std::make_pair(1, 1),
+        std::make_pair(-1, -1), // Up-Left (Northwest)
+        std::make_pair(-1, 1),  // Up-Right (Northeast)
+        std::make_pair(1, -1),  // Down-Left (Southwest)
+        std::make_pair(1, 1)    // Down-Right (Southeast)
     };
 
     pieceMove(moves,player,square, directions, true, allies, enemies);
@@ -215,8 +217,10 @@ void MoveGen::bishopMove(MoveList &moves, bool player, Square square, Bitboard a
 
 void MoveGen::rookMove(MoveList &moves, bool player, Square square, Bitboard allies, Bitboard enemies) {
     std::array directions = {
-        std::make_pair(0, -1), std::make_pair(0, 1),
-        std::make_pair(-1, 0), std::make_pair(0, 1),
+        std::make_pair(-1, 0),  // Up (North)
+        std::make_pair(0, -1),  // Left (West)
+        std::make_pair(0, 1),   // Right (East)
+        std::make_pair(1, 0),   // Down (South)
     };
 
     pieceMove(moves,player,square, directions, true, allies, enemies);
@@ -224,21 +228,28 @@ void MoveGen::rookMove(MoveList &moves, bool player, Square square, Bitboard all
 
 void MoveGen::queenMove(MoveList &moves, bool player, Square square, Bitboard allies, Bitboard enemies) {
     std::array directions = {
-        std::make_pair(-1, -1), std::make_pair(-1, 1),
-        std::make_pair(1, -1), std::make_pair(1, 1),
-        std::make_pair(-1, -1), std::make_pair(-1, 1),
-        std::make_pair(1, -1), std::make_pair(1, 1),
+        std::make_pair(-1, -1), // Up-Left (Northwest)
+        std::make_pair(-1, 0),  // Up (North)
+        std::make_pair(-1, 1),  // Up-Right (Northeast)
+        std::make_pair(0, -1),  // Left (West)
+        std::make_pair(0, 1),   // Right (East)
+        std::make_pair(1, -1),  // Down-Left (Southwest)
+        std::make_pair(1, 0),   // Down (South)
+        std::make_pair(1, 1)    // Down-Right (Southeast)
     };
-
     pieceMove(moves,player,square, directions, true, allies, enemies);
 }
 
 void MoveGen::kingMove(MoveList &moves, bool player, Square square, Bitboard allies) {
     std::array directions = {
-        std::make_pair(-1, -1), std::make_pair(-1, 1),
-        std::make_pair(1, -1), std::make_pair(1, 1),
-        std::make_pair(-1, -1), std::make_pair(-1, 1),
-        std::make_pair(1, -1), std::make_pair(1, 1),
+        std::make_pair(-1, -1), // Up-Left (Northwest)
+        std::make_pair(-1, 0),  // Up (North)
+        std::make_pair(-1, 1),  // Up-Right (Northeast)
+        std::make_pair(0, -1),  // Left (West)
+        std::make_pair(0, 1),   // Right (East)
+        std::make_pair(1, -1),  // Down-Left (Southwest)
+        std::make_pair(1, 0),   // Down (South)
+        std::make_pair(1, 1)    // Down-Right (Southeast)
     };
 
     pieceMove(moves,player,square, directions, false, allies);

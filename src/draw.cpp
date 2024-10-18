@@ -57,48 +57,61 @@ sf::Vector2f Draw::squareToPosition(Square square) {
 }
 
 // Function to draw the pieces on the chessboard
-void Draw::drawPieces(sf::RenderWindow& window, Position& game, const std::array<sf::Texture, 12>& pieceTextures) {
-  for (int rank = 0; rank < BOARD_SIZE; ++rank) {
-    for (int file = 0; file < BOARD_SIZE; ++file) {
-      Square square = static_cast<Square>(rank * BOARD_SIZE + file);
-      Piece piece = game.pieceOn(square); // Get the piece at the current square
+void Draw::drawPieces(sf::RenderWindow& window, Position& game,
+  const std::array<sf::Texture, 12>& pieceTextures, sf::Font& font) {
+    sf::Text playerText;
+    playerText.setFont(font);
+    playerText.setCharacterSize(24);
+    playerText.setFillColor(sf::Color::White);
+    playerText.setPosition(600, 50);
+    if (game.getCurrentPlayer()) {
+      playerText.setString("Black to play.");
+    }
+    else {
+      playerText.setString("White to play.");
+    }
+    window.draw(playerText);
+    for (int rank = 0; rank < BOARD_SIZE; ++rank) {
+        for (int file = 0; file < BOARD_SIZE; ++file) {
+            Square square = static_cast<Square>(rank * BOARD_SIZE + file);
+            Piece piece = game.pieceOn(square); // Get the piece at the current square
 
-      // Skip empty squares
-      if (piece == EMPTY) continue;
+            // Skip empty squares
+            if (piece == EMPTY) continue;
 
-      sf::Sprite pieceSprite;
+                sf::Sprite pieceSprite;
 
-      // Determine the texture based on the piece type and color
-      if (game.getColors()[WHITE].getBitboard() & Bit(square)) {
-        if (piece == PAWN) {
-          pieceSprite.setTexture(pieceTextures[0]); // White pawn
-        } else if (piece == KNIGHT) {
-          pieceSprite.setTexture(pieceTextures[1]); // White knight
-        } else if (piece == BISHOP) {
-          pieceSprite.setTexture(pieceTextures[2]); // White bishop
-        } else if (piece == ROOK) {
-          pieceSprite.setTexture(pieceTextures[3]); // White rook
-        } else if (piece == QUEEN) {
-          pieceSprite.setTexture(pieceTextures[4]); // White queen
-        } else if (piece == KING) {
-          pieceSprite.setTexture(pieceTextures[5]); // White king
+                // Determine the texture based on the piece type and color
+            if (game.getColors()[WHITE].getBitboard() & Bit(square)) {
+                if (piece == PAWN) {
+                    pieceSprite.setTexture(pieceTextures[0]); // White pawn
+                } else if (piece == KNIGHT) {
+                    pieceSprite.setTexture(pieceTextures[1]); // White knight
+                } else if (piece == BISHOP) {
+                    pieceSprite.setTexture(pieceTextures[2]); // White bishop
+                } else if (piece == ROOK) {
+                    pieceSprite.setTexture(pieceTextures[3]); // White rook
+                } else if (piece == QUEEN) {
+                    pieceSprite.setTexture(pieceTextures[4]); // White queen
+                } else if (piece == KING) {
+                    pieceSprite.setTexture(pieceTextures[5]); // White king
+                }
+            }
+        else if (game.getColors()[BLACK].getBitboard() & Bit(square)) {
+            if (piece == PAWN) {
+                pieceSprite.setTexture(pieceTextures[6]); // Black pawn
+            } else if (piece == KNIGHT) {
+                pieceSprite.setTexture(pieceTextures[7]); // Black knight
+            } else if (piece == BISHOP) {
+                pieceSprite.setTexture(pieceTextures[8]); // Black bishop
+            } else if (piece == ROOK) {
+                pieceSprite.setTexture(pieceTextures[9]); // Black rook
+            } else if (piece == QUEEN) {
+                pieceSprite.setTexture(pieceTextures[10]); // Black queen
+            } else if (piece == KING) {
+                pieceSprite.setTexture(pieceTextures[11]); // Black king
+            }
         }
-      }
-      else if (game.getColors()[BLACK].getBitboard() & Bit(square)) {
-          if (piece == PAWN) {
-            pieceSprite.setTexture(pieceTextures[6]); // Black pawn
-          } else if (piece == KNIGHT) {
-            pieceSprite.setTexture(pieceTextures[7]); // Black knight
-          } else if (piece == BISHOP) {
-            pieceSprite.setTexture(pieceTextures[8]); // Black bishop
-          } else if (piece == ROOK) {
-            pieceSprite.setTexture(pieceTextures[9]); // Black rook
-          } else if (piece == QUEEN) {
-            pieceSprite.setTexture(pieceTextures[10]); // Black queen
-          } else if (piece == KING) {
-            pieceSprite.setTexture(pieceTextures[11]); // Black king
-          }
-      }
         // Set the position of the piece sprite
         pieceSprite.setPosition(squareToPosition(square));
         window.draw(pieceSprite); // Draw the piece on the window

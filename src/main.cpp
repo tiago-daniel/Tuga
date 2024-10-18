@@ -14,6 +14,7 @@ int main() {
     std::cerr << "Error loading font!" << std::endl;
     return -1; // Exit if font cannot be loaded
   }
+  bool changes = true;
   std::vector<sf::Text> moveTexts;
   auto pieceTextures = draw.loadAllTextures();
   // Create a window with specified dimensions
@@ -41,24 +42,27 @@ int main() {
               std::cout << "Clicked on move: " << i + 1 << std::endl;
               game.makeMove(moves.getMoves()[i]);
               moves = game.allMoves(game.getCurrentPlayer());
+              changes = true;
               // Handle the move here (e.g., make the move, update the board)
             }
           }
         }
       }
     }
-
+    if (changes) {
       window.clear();
 
       // Draw the chess board on the left side
       draw.drawChessBoard(window);
 
-      draw.drawPieces(window,game,pieceTextures);
+      draw.drawPieces(window,game,pieceTextures,font);
 
       // Draw the list of possible moves on the right side
       draw.drawPossibleMoves(window, moves, moveTexts, font);
 
       window.display();  // Display the contents of the window
+      changes = false;
+    }
     }
 
     return 0;
