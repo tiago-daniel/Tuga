@@ -220,11 +220,8 @@ void Position::print() {
                         break;
                 }
             }
-            else if ((row + col) % 2 == 0){
-                std::cout << 'o' << " ";
-            }
             else {
-                std::cout << 'O' << " ";
+                std::cout << " " << " ";
             }
         }
         std::cout << std::endl;
@@ -242,23 +239,23 @@ MoveList Position::allMoves(bool player) {
             if (allies.getBitboard() & Bit(n)) {
                 switch (this->pieces[n]) {
                     case PAWN:
-                        move_handler.pawnMove(moves, static_cast<Square>(n), static_cast<Color>(this->current_player), allies, enemies, passant);
+                        move_handler.pawnMove(moves, static_cast<Square>(n), static_cast<Color>(player), allies, enemies, passant);
                     break;
                     case KNIGHT:
-                        move_handler.knightMove(moves, static_cast<Square>(n), allies);
+                        move_handler.knightMove(moves, static_cast<Color>(player), static_cast<Square>(n), allies);
                     break;
                     case BISHOP:
-                        move_handler.bishopMove(moves, static_cast<Square>(n), allies,enemies);
+                        move_handler.bishopMove(moves, static_cast<Color>(player), static_cast<Square>(n), allies,enemies);
                     break;
                     case ROOK:
-                        move_handler.rookMove(moves, static_cast<Square>(n), allies,enemies);
+                        move_handler.rookMove(moves, static_cast<Color>(player), static_cast<Square>(n), allies,enemies);
                     break;
                     case QUEEN:
-                        move_handler.queenMove(moves, static_cast<Square>(n), allies,enemies);
+                        move_handler.queenMove(moves, static_cast<Color>(player), static_cast<Square>(n), allies,enemies);
                     break;
                     case KING:
-                        move_handler.kingMove(moves, static_cast<Square>(n), allies);
-                        move_handler.castleMove(moves, static_cast<Square>(n), this->can_castle,allies, enemies);
+                        move_handler.kingMove(moves, static_cast<Color>(player), static_cast<Square>(n), allies);
+                        move_handler.castleMove(moves, static_cast<Color>(player), static_cast<Square>(n), this->can_castle,allies, enemies);
                         break;
                     default:
                         break;
@@ -269,6 +266,16 @@ MoveList Position::allMoves(bool player) {
     return moves;
 }
 
+bool Position::isAttacked(bool player, Square square) {
+    MoveList enemyMoves = this->allMoves(player ^ 1);
+    for (const auto& move : enemyMoves.getMoves()) {
+        if (move.destination == square) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool Position::isKingInCheck(bool player) {
     Square kingSquare = a1;
     for (int i = 0; i < 64; i++) {
@@ -277,12 +284,20 @@ bool Position::isKingInCheck(bool player) {
             break;
         }
     }
-
-    MoveList enemyMoves = this->allMoves(player ^ 1);
-    for (const auto& move : enemyMoves.getMoves()) {
-        if (move.destination == kingSquare) {
-            return true;
-        }
-    }
-    return false;
+    return isAttacked(player, kingSquare);
 }
+/*
+bool Position::isLegal(Move move) {
+    if (move.type == EN_PASSANT) {
+
+    }
+
+    if (move.type == CASTLE) {
+
+    }
+
+    if (pieceOn(move.origin) == KING) {
+        if isAttacked(move.player, move.destination)
+    }
+}
+*/
