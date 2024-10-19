@@ -32,6 +32,20 @@ void MoveList::remove(Move move){
 };
 
 std::array<Move, 256> MoveList::getMoves() const {
-
     return this->moves;
+};
+
+void MoveList::clear() {
+    std::array<Move,256> emptyMoves;
+    this->moves = emptyMoves;
+    this->size = 0;
+};
+
+bool MoveList::has(Move move) const {
+    for (int i = 0; i < this->size; i++) {
+        if (this->moves[i] == move) {
+            return true;
+        }
+    }
+    return false;
 };
