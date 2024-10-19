@@ -29,8 +29,8 @@ public:
     void passantMove(Move move);
     void normalMove(Move move);
     Square getPassant();
-
-    bool getCurrentPlayer();
+    int getCastlingRights();
+    bool getCurrentPlayer() const;
     void print();
     MoveList allMoves(bool player);
     bool isAttacked(bool player, Square square);

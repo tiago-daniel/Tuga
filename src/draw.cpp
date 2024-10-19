@@ -145,11 +145,20 @@ Square Draw::pixelToSquare(float x, float y) {
     int col = static_cast<int>(x-80) / TILE_SIZE; // Column (file)
     int row = 7 - static_cast<int>(y-80) / TILE_SIZE; // Row (rank), inverted to match chessboard
 
-    // Ensure the column and row are within bounds
-    if (col < 0 || col > 7 || row < 0 || row > 7) {
-        throw std::out_of_range("Click is outside the board!");
-    }
-
-    // Calculate the enum value
     return static_cast<Square>(row * 8 + col);
+}
+
+void Draw::drawPlayableCircles(sf::RenderWindow& window, const MoveList & moves, Bitboard enemies) {
+    for (int i = 0; i < moves.getSize(); ++i) {
+        sf::CircleShape circle(15);
+        int col = moves.getMoves()[i].destination % 8;
+        int row = moves.getMoves()[i].destination / 8;
+        circle.setPosition(115 +col * TILE_SIZE,  810 - (row * TILE_SIZE));
+        circle.setFillColor(sf::Color(20,20,20,100));
+        if (enemies.hasBit(moves.getMoves()[i].destination)) {
+            circle.setFillColor(sf::Color(200,20,20,200));
+        }
+
+        window.draw(circle);
+    }
 }

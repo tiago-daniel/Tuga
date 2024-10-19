@@ -38,12 +38,14 @@ int main() {
                     int y = event.mouseButton.y;
                     if (x >= 80 and x <= BOARD_WIDTH + 80 and y >= 80 and y <= BOARD_WIDTH + 80) {
                         auto clickedSquare = draw.pixelToSquare(x, y);
-                        for (auto move1 : playableMoves.getMoves()) {
-                            if (move1.destination == clickedSquare) {
-                                game.makeMove(move1);
+                        for (int i = 0; i < playableMoves.getSize();i++) {
+                            if (playableMoves.getMoves()[i].destination == clickedSquare and
+                                playableMoves.getMoves()[i].origin == selectedSquare) {
+                                game.makeMove(playableMoves.getMoves()[i]);
                                 moves = game.allMoves(game.getCurrentPlayer());
                                 selectedSquare = static_cast<Square>(64);
                                 changes = true;
+                                playableMoves.clear();
                                 break;
                             }
                         }
@@ -51,9 +53,9 @@ int main() {
                         if (game.getColors()[game.getCurrentPlayer()].hasBit(clickedSquare) and !changes) {
                             selectedSquare = clickedSquare;
                             changes = true;
-                            for (auto move2 : moves.getMoves()) {
-                                if (move2.origin == selectedSquare) {
-                                    playableMoves.push(move2);
+                            for (int i = 0; i < moves.getSize();i++) {
+                                if (moves.getMoves()[i].origin == selectedSquare) {
+                                    playableMoves.push(moves.getMoves()[i]);
                                 }
                             }
                         }
@@ -62,11 +64,12 @@ int main() {
                         for (size_t i = 0; i < moveTexts.size(); ++i) {
                             if (moveTexts[i].getGlobalBounds().contains(x, y)) {
                                 // Move was clicked, handle it
-                                std::cout << "Clicked on move: " << i + 1 << std::endl;
-                                game.makeMove(moves.getMoves()[i]);
+                                game.makeMove(playableMoves.getMoves()[i]);
                                 moves = game.allMoves(game.getCurrentPlayer());
                                 selectedSquare = static_cast<Square>(64);
                                 changes = true;
+                                playableMoves.clear();
+                                break;
                                 // Handle the move here (e.g., make the move, update the board)
                             }
                         }
@@ -82,7 +85,9 @@ int main() {
                 draw.drawPieces(window,game,pieceTextures,font);
 
                 // Draw the list of possible moves on the right side
-                draw.drawPossibleMoves(window, moves, moveTexts, font);
+                draw.drawPossibleMoves(window, playableMoves, moveTexts, font);
+
+                draw.drawPlayableCircles(window,playableMoves, game.getColors()[game.getCurrentPlayer()^1]);
 
                 window.display();  // Display the contents of the window
                 changes = false;
