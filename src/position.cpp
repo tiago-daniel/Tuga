@@ -32,6 +32,10 @@ Square Position::getPassant() {
     return this->passant;
 }
 
+int Position::getCastlingRights() {
+    return this->can_castle;
+}
+
 void Position::makeMove(Move move) {
     switch (move.type) {
         case EN_PASSANT:
@@ -49,20 +53,36 @@ void Position::makeMove(Move move) {
     }
     this->current_player ^= 1;
     this->draw_count++;
-
+    if (this->can_castle & 0b0001) {
+        if (pieceOn(e1) != KING or pieceOn(h1) != ROOK ) {
+            this->can_castle &= 0b1110;
+        }
+    }
+    if (this->can_castle & 0b0010) {
+        if (pieceOn(e1) != KING or pieceOn(a1) != ROOK ) {
+            this->can_castle &= 0b1101;
+        }
+    }
+    if (this->can_castle & 0b0100) {
+        if (pieceOn(e8) != KING or pieceOn(h8) != ROOK ) {
+            this->can_castle &= 0b1011;
+        }
+    }
+    if (this->can_castle & 0b1000){
+        if (pieceOn(e8) != KING or pieceOn(a8) != ROOK ) {
+            this->can_castle &= 0b0111;
+        }
+    }
 }
 
 void Position::promotionMove(Move move) {
-    for (auto board : this->boards) {
+    for (auto &board : this->boards) {
         if (board.getBitboard() & Bit(move.destination)) {
             this->draw_count = 0;
             board.removeBit(move.destination);
         }
         else if (board.getBitboard() & Bit(move.origin)) {
             board.removeBit(move.origin);
-            if (board.getBitboard() != boards[PAWN].getBitboard()) {
-                board.addBit(move.destination);
-            }
         }
         colors[current_player].removeBit(move.origin);
         colors[current_player ^ 1].removeBit(move.destination);
@@ -75,7 +95,7 @@ void Position::promotionMove(Move move) {
 
 void Position::castleMove(Move move) {
     if (move.origin + 2 == move.destination) {
-        for (auto board : this->boards) {
+        for (auto &board : this->boards) {
             if (board.getBitboard() & Bit(move.origin)) {
                 board.removeBit(move.origin);
                 board.addBit(move.destination);
@@ -91,11 +111,11 @@ void Position::castleMove(Move move) {
         pieces[move.destination-1] = ROOK;
         colors[current_player].removeBit(move.origin);
         colors[current_player].addBit(move.destination);
-        colors[current_player].removeBit(move.destination+3);
+        colors[current_player].removeBit(move.origin+3);
         colors[current_player].addBit(move.destination-1);
     }
     else {
-        for (auto board : this->boards) {
+        for (auto &board : this->boards) {
             if (board.getBitboard() & Bit(move.origin)) {
                 board.removeBit(move.origin);
                 board.addBit(move.destination);
@@ -121,7 +141,7 @@ Piece Position::pieceOn(Square square) {
 }
 
 void Position::passantMove(Move move) {
-    for (auto board : this->boards) {
+    for (auto &board : this->boards) {
         board.removeBit(this->passant);
         if (board.getBitboard() & Bit(move.origin)) {
             board.removeBit(move.origin);
@@ -139,30 +159,31 @@ void Position::passantMove(Move move) {
 }
 
 void Position::normalMove(Move move) {
-    for (auto board : this->boards) {
-        if (board.getBitboard() & Bit(move.destination)) {
+    for (auto &board : this->boards) {
+        if (board.hasBit(move.destination)) {
             this->draw_count = 0;
             board.removeBit(move.destination);
         }
-        if (board.getBitboard() & Bit(move.origin)) {
+        if (board.hasBit(move.origin)) {
             board.removeBit(move.origin);
             board.addBit(move.destination);
         }
     }
 
-        pieces[move.destination] = pieces[move.origin];  // Copy piece from origin to destination
-        pieces[move.origin] = EMPTY;  // Set origin square as empty
+    pieces[move.destination] = pieces[move.origin];  // Copy piece from origin to destination
+    pieces[move.origin] = EMPTY;  // Set origin square as empty
 
-        passant = a1;
-        if (this->boards[PAWN].getBitboard() & Bit(move.destination) and (move.destination == move.origin + 16 or move.destination == move.origin - 16)) {
-            passant = move.destination;                     // make en passant square
+    this->passant = a1;
+    if (this->boards[PAWN].hasBit(move.destination) and
+    (move.destination == move.origin + 16 || move.destination == move.origin - 16)) {
+        this->passant = move.destination; // Set en passant square
     }
     colors[current_player].removeBit(move.origin);
     colors[current_player ^ 1].removeBit(move.destination);
     colors[current_player].addBit(move.destination);
 }
 
-bool Position::getCurrentPlayer() {
+bool Position::getCurrentPlayer() const {
     return this->current_player;
 }
 

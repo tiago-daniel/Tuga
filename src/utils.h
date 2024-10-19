@@ -22,13 +22,13 @@
     };
 
     enum Piece{
-        EMPTY,
         PAWN,
         KNIGHT,
         BISHOP,
         ROOK,
         QUEEN,
-        KING
+        KING,
+        EMPTY
     };
 
     enum Color : bool {

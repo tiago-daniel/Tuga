@@ -24,6 +24,7 @@ public:
     void drawPieces(sf::RenderWindow& window, Position& game, const std::array<sf::Texture, 12>& pieceTextures, sf::Font& font);
     void drawPossibleMoves(sf::RenderWindow &window, const MoveList &moves, std::vector<sf::Text> &moveTexts, sf::Font &font);
     Square pixelToSquare(float x, float y);
+    void drawPlayableCircles(sf::RenderWindow & window, const MoveList & moves, Bitboard enemies);
 };
 
 
