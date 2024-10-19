@@ -5,46 +5,52 @@
 #include "draw.h"
 
 sf::Texture Draw::loadPieceTexture(const std::string& filename) {
-  sf::Texture texture;
-  if (!texture.loadFromFile(filename)) {
-    std::cerr << "Failed to load texture: " << filename << std::endl;
-  }
-  return texture;
+    sf::Texture texture;
+    if (!texture.loadFromFile(filename)) {
+        std::cerr << "Failed to load texture: " << filename << std::endl;
+    }
+    return texture;
 }
 std::array<sf::Texture, 12> Draw::loadAllTextures(){
-  std::array<sf::Texture, 12> pieceTextures;
-  pieceTextures[0] = loadPieceTexture("../png/P.png");
-  pieceTextures[1] = loadPieceTexture("../png/N.png");
-  pieceTextures[2] = loadPieceTexture("../png/B.png");
-  pieceTextures[3] = loadPieceTexture("../png/R.png");
-  pieceTextures[4] = loadPieceTexture("../png/Q.png");
-  pieceTextures[5] = loadPieceTexture("../png/K.png");
-  pieceTextures[6] = loadPieceTexture("../png/p.png");
-  pieceTextures[7] = loadPieceTexture("../png/n.png");
-  pieceTextures[8] = loadPieceTexture("../png/b.png");
-  pieceTextures[9] = loadPieceTexture("../png/r.png");
-  pieceTextures[10] = loadPieceTexture("../png/q.png");
-  pieceTextures[11] = loadPieceTexture("../png/k.png");
-  return pieceTextures;
+    std::array<sf::Texture, 12> pieceTextures;
+    pieceTextures[0] = loadPieceTexture("../png/P.png");
+    pieceTextures[1] = loadPieceTexture("../png/N.png");
+    pieceTextures[2] = loadPieceTexture("../png/B.png");
+    pieceTextures[3] = loadPieceTexture("../png/R.png");
+    pieceTextures[4] = loadPieceTexture("../png/Q.png");
+    pieceTextures[5] = loadPieceTexture("../png/K.png");
+    pieceTextures[6] = loadPieceTexture("../png/p.png");
+    pieceTextures[7] = loadPieceTexture("../png/n.png");
+    pieceTextures[8] = loadPieceTexture("../png/b.png");
+    pieceTextures[9] = loadPieceTexture("../png/r.png");
+    pieceTextures[10] = loadPieceTexture("../png/q.png");
+    pieceTextures[11] = loadPieceTexture("../png/k.png");
+    return pieceTextures;
 };
 
-void Draw::drawChessBoard(sf::RenderWindow& window) {
-  sf::Color lightSquareColor(240, 217, 181);
-  sf::Color darkSquareColor(181, 136, 99);
-  for (int row = 0; row < BOARD_SIZE; ++row) {
-    for (int col = 0; col < BOARD_SIZE; ++col) {
-      sf::RectangleShape square(sf::Vector2f(TILE_SIZE, TILE_SIZE));
-      square.setPosition(80 + col * TILE_SIZE, 80 + row * TILE_SIZE);
+void Draw::drawChessBoard(sf::RenderWindow& window, const Square selectedSquare) {
+    sf::Color lightSquareColor(240, 217, 181);
+    sf::Color darkSquareColor(181, 136, 99);
+    sf::Color highlighted(30, 120, 30, 255);
+    for (int row = 0; row < BOARD_SIZE; ++row) {
+        for (int col = 0; col < BOARD_SIZE; ++col) {
+            auto square = static_cast<Square>((56 - row * 8) + col);
+            sf::RectangleShape tile(sf::Vector2f(TILE_SIZE, TILE_SIZE));
+            tile.setPosition(80 + col * TILE_SIZE, 80 + row * TILE_SIZE);
 
-      if ((row + col) % 2 == 0) {
-        square.setFillColor(lightSquareColor);
-      } else {
-        square.setFillColor(darkSquareColor);
-      }
+            if ((row + col) % 2 == 0) {
+                tile.setFillColor(lightSquareColor);
+            }
+            else {
+                tile.setFillColor(darkSquareColor);
+            }
+            if (square == selectedSquare) {
+                tile.setFillColor(highlighted);
+            }
 
-      window.draw(square);
+            window.draw(tile);
+        }
     }
-  }
 }
 
 Draw::Draw() = default;
@@ -58,17 +64,17 @@ sf::Vector2f Draw::squareToPosition(Square square) {
 
 // Function to draw the pieces on the chessboard
 void Draw::drawPieces(sf::RenderWindow& window, Position& game,
-  const std::array<sf::Texture, 12>& pieceTextures, sf::Font& font) {
+    const std::array<sf::Texture, 12>& pieceTextures, sf::Font& font) {
     sf::Text playerText;
     playerText.setFont(font);
     playerText.setCharacterSize(24);
     playerText.setFillColor(sf::Color::White);
     playerText.setPosition(600, 50);
     if (game.getCurrentPlayer()) {
-      playerText.setString("Black to play.");
+        playerText.setString("Black to play.");
     }
     else {
-      playerText.setString("White to play.");
+        playerText.setString("White to play.");
     }
     window.draw(playerText);
     for (int rank = 0; rank < BOARD_SIZE; ++rank) {
@@ -120,30 +126,30 @@ void Draw::drawPieces(sf::RenderWindow& window, Position& game,
 }
 
 void Draw::drawPossibleMoves(sf::RenderWindow& window, const MoveList& moves, std::vector<sf::Text>& moveTexts, sf::Font& font) {
-  moveTexts.clear();
+    moveTexts.clear();
 
-  for (size_t i = 0; i < moves.getSize(); ++i) {
-    sf::Text moveText;
-    moveText.setFont(font);
-    moveText.setString("Move " + std::to_string(i + 1) + ": " + printMove(moves.getMoves()[i]));
-    moveText.setCharacterSize(24);
-    moveText.setFillColor(sf::Color::White);
-    moveText.setPosition(900 + (i / 27) * 200, 80 + (i % 27) * 30); // Adjust y position for each move
-    window.draw(moveText);
-    moveTexts.push_back(moveText);
-  }
+    for (size_t i = 0; i < moves.getSize(); ++i) {
+        sf::Text moveText;
+        moveText.setFont(font);
+        moveText.setString("Move " + std::to_string(i + 1) + ": " + printMove(moves.getMoves()[i]));
+        moveText.setCharacterSize(24);
+        moveText.setFillColor(sf::Color::White);
+        moveText.setPosition(900 + (i / 27) * 200, 80 + (i % 27) * 30); // Adjust y position for each move
+        window.draw(moveText);
+        moveTexts.push_back(moveText);
+    }
 }
 
 
 Square Draw::pixelToSquare(float x, float y) {
-  int col = static_cast<int>(x) / TILE_SIZE; // Column (file)
-  int row = 7 - static_cast<int>(y) / TILE_SIZE; // Row (rank), inverted to match chessboard
+    int col = static_cast<int>(x-80) / TILE_SIZE; // Column (file)
+    int row = 7 - static_cast<int>(y-80) / TILE_SIZE; // Row (rank), inverted to match chessboard
 
-  // Ensure the column and row are within bounds
-  if (col < 0 || col > 7 || row < 0 || row > 7) {
-    throw std::out_of_range("Click is outside the board!");
-  }
+    // Ensure the column and row are within bounds
+    if (col < 0 || col > 7 || row < 0 || row > 7) {
+        throw std::out_of_range("Click is outside the board!");
+    }
 
-  // Calculate the enum value
-  return static_cast<Square>(row * 8 + col);
+    // Calculate the enum value
+    return static_cast<Square>(row * 8 + col);
 }

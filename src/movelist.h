@@ -15,12 +15,14 @@ std::array<Move,256> moves;
 int size = 0;
 
 public:
-  MoveList();
-  void push(Move move);
-  int getSize() const;
-  bool isEmpty() const;
-  void remove(Move move);
-  std::array<Move, 256> getMoves() const;
+    MoveList();
+    void push(Move move);
+    int getSize() const;
+    bool isEmpty() const;
+    void remove(Move move);
+    std::array<Move, 256> getMoves() const;
+    void clear();
+    bool has(Move move) const;
 };
 
 
