@@ -5,9 +5,10 @@
 #include "position.h"
 
 Position::Position() {
-    this->colors = {Bitboard({a1,b1,c1,d1,e1,f1,g1,h1,a2,b2,c2,d2,e2,f2,g2,h2}),Bitboard({a7,b7,c7,d7,e7,f7,g7,h7,a8,b8,c8,d8,e8,f8,g8,h8})};
-    this->boards = {Bitboard({a2,b2,c2,d2,e2,f2,g2,h2,a7,b7,c7,d7,e7,f7,g7,h7}),Bitboard({b1,g1,b8,g8})
-        ,Bitboard({c1,f1,c8,f8}),Bitboard({a1,h1,a8,h8}),Bitboard({d1,d8}),Bitboard({e1,e8})};
+    this->colors = {Bitboard(65535),Bitboard(18446462598732840960)};
+    this->boards = {Bitboard(71776119061282560),Bitboard(460763277876331008)
+        ,Bitboard(288230376151711746),Bitboard(9367487224930631681),
+        Bitboard(576460752303423496),Bitboard(1152921504606846992)};
     this->pieces = {
         ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK,
         PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN,
@@ -18,6 +19,17 @@ Position::Position() {
         PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN,
         ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK,
     };
+    this->captured_pieces = {};
+}
+
+void Position::endGame(int score) {
+    if (this->result == 2) {
+        this->result = score;
+    }
+}
+
+int Position::getResult() const {
+    return this->result;
 }
 
 std::array<Bitboard, 6> Position::getBitboards() {
@@ -32,11 +44,65 @@ Square Position::getPassant() {
     return this->passant;
 }
 
-int Position::getCastlingRights() {
+int Position::getCastlingRights() const {
     return this->can_castle;
 }
 
+std::stack<Piece> Position::getStack() {
+    return this->captured_pieces;
+}
+
+void Position::unmakeMove(Move move) {
+    Piece capturedPiece = this->captured_pieces.top();
+    this->captured_pieces.pop();
+    if (move.type == CASTLE) {
+        if (move.origin == e1) {
+            if (move.destination > move.origin) {
+                this->can_castle |= 0b1;
+            }
+            else {
+                this->can_castle &= 0b10;
+            }
+        }
+        else {
+            if (move.destination > move.origin) {
+                this->can_castle |= 0b100;
+            }
+            else {
+                this->can_castle &= 0b1000;
+            }
+        }
+    }
+    this->colors[move.player].removeBit(move.destination);
+    this->colors[move.player].addBit(move.origin);
+    this->boards[pieceOn(move.destination)].removeBit(move.destination);
+    if (move.type != PROMOTION) {
+        this->boards[pieceOn(move.destination)].addBit(move.origin);
+    }
+    else {
+        this->boards[PAWN].addBit(move.origin);
+    }
+    if (capturedPiece != EMPTY) {
+        this->colors[move.player ^ 1].addBit(move.destination);
+        this->boards[capturedPiece].addBit(move.destination);
+        auto capCopy = this->captured_pieces;
+        this->draw_count = 0;
+        while (!capCopy.empty() and capCopy.top() == EMPTY) {
+            capCopy.pop();
+            draw_count++;
+        }
+    }
+    else {
+        draw_count--;
+    }
+    this->pieces[move.origin] = pieceOn(move.destination);
+    this->pieces[move.destination] = capturedPiece;
+    this->current_player ^= 1;
+}
+
 void Position::makeMove(Move move) {
+    this->draw_count++;
+    this->captured_pieces.push(pieceOn(move.destination));
     switch (move.type) {
         case EN_PASSANT:
             passantMove(move);
@@ -52,7 +118,6 @@ void Position::makeMove(Move move) {
             break;
     }
     this->current_player ^= 1;
-    this->draw_count++;
     if (this->can_castle & 0b0001) {
         if (pieceOn(e1) != KING or pieceOn(h1) != ROOK ) {
             this->can_castle &= 0b1110;
@@ -72,6 +137,9 @@ void Position::makeMove(Move move) {
         if (pieceOn(e8) != KING or pieceOn(a8) != ROOK ) {
             this->can_castle &= 0b0111;
         }
+    }
+    if (draw_count == 50) {
+        endGame(0);
     }
 }
 
@@ -187,7 +255,7 @@ bool Position::getCurrentPlayer() const {
     return this->current_player;
 }
 
-void Position::print() {
+void Position::print() const {
     for (int row = 7; row >= 0; row--) {
         for (int col = 0; col < 8; col++) {
             int n = row * 8 + col;
@@ -249,34 +317,33 @@ void Position::print() {
     }
 }
 
-MoveList Position::allMoves(bool player) {
+MoveList Position::pseudoLegal(bool player) const {
     auto moves = MoveList();
     Bitboard allies = this->colors[player];
     Bitboard enemies = this->colors[player xor 1];
-    MoveGen move_handler = MoveGen();
     for (int row = 0; row < 8; row++) {
         for (int col = 0; col < 8; col++) {
             int n = row * 8 + col;
             if (allies.getBitboard() & Bit(n)) {
                 switch (this->pieces[n]) {
                     case PAWN:
-                        move_handler.pawnMove(moves, static_cast<Square>(n), static_cast<Color>(player), allies, enemies, passant);
+                        MoveGen::pawnMove(moves, static_cast<Square>(n), player, allies, enemies, passant);
                     break;
                     case KNIGHT:
-                        move_handler.knightMove(moves, static_cast<Color>(player), static_cast<Square>(n), allies);
+                        MoveGen::knightMove(moves, player, static_cast<Square>(n), allies);
                     break;
                     case BISHOP:
-                        move_handler.bishopMove(moves, static_cast<Color>(player), static_cast<Square>(n), allies,enemies);
+                        MoveGen::bishopMove(moves, player, static_cast<Square>(n), allies,enemies);
                     break;
                     case ROOK:
-                        move_handler.rookMove(moves, static_cast<Color>(player), static_cast<Square>(n), allies,enemies);
+                        MoveGen::rookMove(moves, player, static_cast<Square>(n), allies,enemies);
                     break;
                     case QUEEN:
-                        move_handler.queenMove(moves, static_cast<Color>(player), static_cast<Square>(n), allies,enemies);
+                        MoveGen::queenMove(moves, player, static_cast<Square>(n), allies,enemies);
                     break;
                     case KING:
-                        move_handler.kingMove(moves, static_cast<Color>(player), static_cast<Square>(n), allies);
-                        move_handler.castleMove(moves, static_cast<Color>(player), static_cast<Square>(n), this->can_castle,allies, enemies);
+                        MoveGen::kingMove(moves, player, static_cast<Square>(n), allies);
+                        MoveGen::castleMove(moves, player, static_cast<Square>(n), this->can_castle,allies, enemies);
                         break;
                     default:
                         break;
@@ -287,9 +354,55 @@ MoveList Position::allMoves(bool player) {
     return moves;
 }
 
-bool Position::isAttacked(bool player, Square square) {
-    MoveList enemyMoves = this->allMoves(player ^ 1);
+MoveList Position::allMoves(bool player) {
+    auto moves = pseudoLegal(player);
+    auto result = MoveList();
+    for (int i = 0; i < moves.getSize(); i++) {
+        makeMove(moves.getMoves()[i]);
+        if (isKingInCheck(player,findKingSquare(player)) < 64) {
+            unmakeMove(moves.getMoves()[i]);
+            continue;
+        }
+        unmakeMove(moves.getMoves()[i]);
+        result.push(moves.getMoves()[i]);
+    }
+    if (result.getSize() == 0) {
+        if (isKingInCheck(player,findKingSquare(player))) {
+            endGame(1 - 2 * static_cast<int>(player));
+        }
+        else {
+            endGame(0);
+        }
+    }
+    return result;
+}
+
+Square Position::findKingSquare(bool player) const {
+    auto kingSquare = Square(64);
+    for (int i = 0; i < 64; i++) {
+        if (pieces[i] == KING && colors[player].hasBit(i)) {
+            kingSquare = static_cast<Square>(i);
+            break;
+        }
+    }
+    return kingSquare;
+}
+
+Square Position::isKingInCheck(bool player, Square kingSquare) const {
+    MoveList enemyMoves = this->pseudoLegal(player ^ 1);
     for (const auto& move : enemyMoves.getMoves()) {
+        if (move.destination == kingSquare) {
+            return move.origin;
+        }
+    }
+    return noSquare;
+}
+
+/*
+
+bool Position::isPseudoAttacked(bool player, Square square) const {
+    MoveList enemyMoves = this->pseudoLegal(player ^ 1);
+    for(auto& move : enemyMoves.getMoves()) {
         if (move.destination == square) {
             return true;
         }
@@ -297,28 +410,99 @@ bool Position::isAttacked(bool player, Square square) {
     return false;
 }
 
-bool Position::isKingInCheck(bool player) {
+bool Position::isKingInDoubleCheck(bool player) const {
     Square kingSquare = a1;
+    bool flag = false;
     for (int i = 0; i < 64; i++) {
         if (pieces[i] == KING && colors[player].hasBit(i)) {
             kingSquare = static_cast<Square>(i);
             break;
         }
     }
-    return isAttacked(player, kingSquare);
-}
-/*
-bool Position::isLegal(Move move) {
-    if (move.type == EN_PASSANT) {
-
+    MoveList enemyMoves = this->pseudoLegal(player ^ 1);
+    for (const auto& move : enemyMoves.getMoves()) {
+        if (move.destination == kingSquare) {
+            if (flag == true) {
+                return true;
+            }
+            flag = true;
+        }
     }
+    return false;
+}
 
+std::array<Square, 7> Position::isBetween(Square square1, Square square2) {
+    std::array result = {noSquare, noSquare, noSquare, noSquare, noSquare, noSquare, noSquare};
+    int i = 0;
+    if (square1 % 8 == square2 % 8) {
+        // Vertical move
+        while (square1 != square2) {
+            result[i++] = square2;
+            square2 = static_cast<Square>(square2 > square1 ? square2 - 8 : square2 + 8);
+        }
+    }
+    else if (square1 / 8 == square2 / 8) {
+        // Horizontal move
+        while (square1 != square2) {
+            result[i++] = square2;
+            square2 = static_cast<Square>(square2 > square1 ? square2 - 1 : square2 + 1);
+        }
+    }
+    else if (std::abs((square1 / 8) - (square2 / 8)) == std::abs((square1 % 8) - (square2 % 8))) {
+        // Diagonal move
+        while (square1 != square2) {
+            result[i++] = square2;
+            square2 = static_cast<Square>(square2 > square1
+                ? (square2 - 9 * (square1 % 8 < square2 % 8)) - 7 * (square1 % 8 > square2 % 8)
+                : (square2 + 9 * (square1 % 8 < square2 % 8)) + 7 * (square1 % 8 > square2 % 8));
+        }
+    }
+    return result;
+}
+
+bool Position::isSquareBetween(Square square1,Square square2,Square square3) {
+    for(auto square : isBetween(square1,square2)) {
+        if (square == square3) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Position::isLegal(Move move) {
     if (move.type == CASTLE) {
-
+        if (move.destination == move.origin + 2) {
+            if (isPseudoAttacked(move.player, move.destination) or
+                isPseudoAttacked(move.player, static_cast<Square>(move.destination - 1)) or
+                isPseudoAttacked(move.player, move.origin)) {
+                return false;
+            }
+            return true;
+        }
+        if (isPseudoAttacked(move.player, move.destination) or
+            isPseudoAttacked(move.player, static_cast<Square>(move.destination + 1)) or
+            isPseudoAttacked(move.player, move.origin)) {
+            return false;
+        }
+        return true;
     }
 
     if (pieceOn(move.origin) == KING) {
-        if isAttacked(move.player, move.destination)
+        if (isPseudoAttacked(move.player, move.destination)){
+            return false;
+        }
+        return true;
     }
+    if (isKingInDoubleCheck(move.player)) {
+        return false;
+    }
+    Square kingSquare = findKingSquare(move.player);
+    Square kingThreat = isKingInCheck(move.player, kingSquare);
+    if (kingThreat != noSquare) {
+        if (not isSquareBetween(kingSquare, kingThreat,move.destination)){
+            return false;
+        }
+    }
+    return true;
 }
 */

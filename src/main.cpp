@@ -26,7 +26,7 @@ int main() {
     auto playableMoves  = MoveList();
     // Main loop
     while (window.isOpen()) {
-        sf::Event event;
+        sf::Event event{};
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
                 window.close();  // Close the window if requested
@@ -42,6 +42,7 @@ int main() {
                             if (playableMoves.getMoves()[i].destination == clickedSquare and
                                 playableMoves.getMoves()[i].origin == selectedSquare) {
                                 game.makeMove(playableMoves.getMoves()[i]);
+                                std::cout << game.isKingInCheck(playableMoves.getMoves()[i].player,game.findKingSquare(playableMoves.getMoves()[i].player)) << std::endl;
                                 moves = game.allMoves(game.getCurrentPlayer());
                                 selectedSquare = static_cast<Square>(64);
                                 changes = true;
@@ -94,5 +95,5 @@ int main() {
             }
         }
     }
-    return 0;
+    return game.getResult();
 }

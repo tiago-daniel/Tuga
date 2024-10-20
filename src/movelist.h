@@ -7,7 +7,6 @@
 
 #include "utils.h"
 #include <array>
-#include <span>
 
 
 class MoveList {
@@ -17,12 +16,12 @@ int size = 0;
 public:
     MoveList();
     void push(Move move);
-    int getSize() const;
-    bool isEmpty() const;
+    [[nodiscard]] int getSize() const;
+    [[nodiscard]] bool isEmpty() const;
     void remove(Move move);
-    std::array<Move, 256> getMoves() const;
+    [[nodiscard]] std::array<Move, 256> getMoves() const;
     void clear();
-    bool has(Move move) const;
+    [[nodiscard]] bool has(Move move) const;
 };
 
 
