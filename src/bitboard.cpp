@@ -10,17 +10,11 @@ Bitboard::Bitboard(const unsigned int long long positions=0) {
     this->positions = positions;
 }
 
-Bitboard::Bitboard(std::vector<Square> squares) {
-    for (Square square:squares) {
-        this->positions += Bit(square);
-    }
-}
-
 void Bitboard::setBitboard(const unsigned int long long positions) {
     this->positions = positions;
 }
 
-bool Bitboard::hasBit(int bit) {
+bool Bitboard::hasBit(int bit) const {
     return positions & Bit(bit);
 }
 

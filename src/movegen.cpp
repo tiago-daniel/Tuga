@@ -5,11 +5,10 @@
 #include "movegen.h"
 
 
-MoveGen::MoveGen() = default;
 
 void MoveGen::pawnMove(MoveList &moves, Square square, bool color, Bitboard allies, Bitboard enemies, Square passant) {
     std::array pieces = {QUEEN, ROOK, BISHOP, KNIGHT};
-    Bitboard board = Bitboard(allies.getBitboard() | enemies.getBitboard());
+    auto board = Bitboard(allies.getBitboard() | enemies.getBitboard());
     MoveType type = NORMAL;
 
     if (color == WHITE) {
