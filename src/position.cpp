@@ -483,14 +483,8 @@ bool Position::isPseudoAttacked(bool player, Square square) {
 }
 
 bool Position::isKingInDoubleCheck(bool player) {
-    Square kingSquare = a1;
+    Square kingSquare = findKingSquare(player);
     bool flag = false;
-    for (int i = 0; i < 64; i++) {
-        if (pieces[i] == KING && colors[player].hasBit(i)) {
-            kingSquare = static_cast<Square>(i);
-            break;
-        }
-    }
     MoveList enemyMoves = this->pseudoLegal(player ^ 1);
     for (const auto& move : enemyMoves.getMoves()) {
         if (move.destination == kingSquare) {
@@ -540,6 +534,7 @@ bool Position::isSquareBetween(Square square1,Square square2,Square square3) {
         if (square == square3) {
             return true;
         }
+        break;
     }
     return false;
 }
