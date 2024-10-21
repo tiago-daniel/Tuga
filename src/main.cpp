@@ -42,7 +42,6 @@ int main() {
                             if (playableMoves.getMoves()[i].destination == clickedSquare and
                                 playableMoves.getMoves()[i].origin == selectedSquare) {
                                 game.makeMove(playableMoves.getMoves()[i]);
-                                std::cout << game.isKingInCheck(playableMoves.getMoves()[i].player,game.findKingSquare(playableMoves.getMoves()[i].player)) << std::endl;
                                 moves = game.allMoves(game.getCurrentPlayer());
                                 selectedSquare = static_cast<Square>(64);
                                 changes = true;

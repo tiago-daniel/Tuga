@@ -25,8 +25,8 @@ public:
     Position();
     void endGame(int score);
     int getResult() const;
-    std::array<Bitboard, 6> getBitboards();
-    std::array<Bitboard, 2> getColors();
+    std::array<Bitboard, 6> getBitboards() const;
+    std::array<Bitboard, 2> getColors() const;
     std::stack<Piece> getStack();
     void makeMove(Move move);
     void unmakeMove(Move move);
@@ -36,19 +36,24 @@ public:
     Piece pieceOn(Square square);
     void passantMove(Move move);
     void normalMove(Move move);
-    Square getPassant();
-    [[nodiscard]] int getCastlingRights() const;
-    [[nodiscard]] bool getCurrentPlayer() const;
-    bool isKingInDoubleCheck(bool player) const;
+    Square getPassant() const;
+    int getCastlingRights() const;
+    bool getCurrentPlayer() const;
+    bool isKingInDoubleCheck(bool player);
     void print() const;
-    [[nodiscard]] MoveList pseudoLegal(bool player) const;
+    MoveList pseudoLegal(bool player) const;
     MoveList allMoves(bool player);
-    static std::array<Square, 7> isBetween(Square square1, Square square2);
-    bool isPseudoAttacked(bool player, Square square) const;
-    [[nodiscard]] Square isKingInCheck(bool player, Square kingSquare) const;
+    static std::array<Square, 8> isBetween(Square square1, Square square2);
+    bool isPseudoAttacked(bool player, Square square);
+    Square isKingInCheck(bool player, Square kingSquare) const;
     static bool isSquareBetween(Square square1,Square square2,Square square3);
 
     bool isLegal(Move move);
+    static Direction getDirection(Square sq1, Square sq2);
+    Direction directionPinned(Square square);
+    bool isPinned(Square square, bool color, int horizontalInc, int verticalInc);
+    Direction isPiecePinned(Square square);
+    bool isValid(Square square);
 };
 
 
