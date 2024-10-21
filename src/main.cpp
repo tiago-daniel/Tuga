@@ -26,6 +26,7 @@ int main() {
     auto playableMoves  = MoveList();
     // Main loop
     while (window.isOpen()) {
+        if (game.getResult() != 2) {break;}
         sf::Event event{};
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {

@@ -71,10 +71,10 @@ void Draw::drawPieces(sf::RenderWindow& window, Position& game,
     playerText.setFillColor(sf::Color::White);
     playerText.setPosition(600, 50);
     if (game.getCurrentPlayer()) {
-        playerText.setString("Black to play.");
+        playerText.setString("Black to play." + std::to_string(game.getDrawCount()));
     }
     else {
-        playerText.setString("White to play.");
+        playerText.setString("White to play." + std::to_string(game.getDrawCount()));
     }
     window.draw(playerText);
     for (int rank = 0; rank < BOARD_SIZE; ++rank) {
