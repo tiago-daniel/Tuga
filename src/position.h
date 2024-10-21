@@ -6,6 +6,7 @@
 #define GAME_H
 #include <array>
 #include <stack>
+#include <cassert>
 #include "movegen.h"
 
 enum Result { WIN = 1, DRAW = 0, LOSS = -1 };
@@ -14,7 +15,6 @@ class Position {
     std::array<Bitboard, 2> colors;
     std::array<Bitboard, 6> boards;
     std::array<Piece, 64> pieces{};
-    MoveGen move_handler = MoveGen();
     int draw_count = 0;
     bool current_player = WHITE;
     Square passant = a1;
@@ -25,6 +25,7 @@ public:
     Position();
     void endGame(int score);
     int getResult() const;
+    int getDrawCount() const;
     std::array<Bitboard, 6> getBitboards() const;
     std::array<Bitboard, 2> getColors() const;
     std::stack<Piece> getStack();
@@ -44,15 +45,13 @@ public:
     MoveList pseudoLegal(bool player) const;
     MoveList allMoves(bool player);
     static std::array<Square, 8> isBetween(Square square1, Square square2);
+    Square pseudoAttacker(bool player, Square square);
     bool isPseudoAttacked(bool player, Square square);
-    Square isKingInCheck(bool player, Square kingSquare) const;
     static bool isSquareBetween(Square square1,Square square2,Square square3);
-
     bool isLegal(Move move);
     static Direction getDirection(Square sq1, Square sq2);
     Direction directionPinned(Square square);
     bool isPinned(Square square, bool color, int horizontalInc, int verticalInc);
-    Direction isPiecePinned(Square square);
     bool isValid(Square square);
 };
 
