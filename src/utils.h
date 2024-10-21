@@ -22,6 +22,13 @@
         noSquare
     };
 
+    enum Direction {
+        HORIZONTAL,
+        VERTICAL,
+        DIAGONAL,
+        NO_DIRECTION
+    };
+
     enum Piece{
         PAWN,
         KNIGHT,

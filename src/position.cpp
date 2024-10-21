@@ -4,6 +4,8 @@
 
 #include "position.h"
 
+#include <bits/ranges_algobase.h>
+
 Position::Position() {
     this->colors = {Bitboard(65535),Bitboard(18446462598732840960)};
     this->boards = {Bitboard(71776119061282560),Bitboard(460763277876331008)
@@ -32,15 +34,15 @@ int Position::getResult() const {
     return this->result;
 }
 
-std::array<Bitboard, 6> Position::getBitboards() {
+std::array<Bitboard, 6> Position::getBitboards() const {
     return this->boards;
 }
 
-std::array<Bitboard, 2> Position::getColors() {
+std::array<Bitboard, 2> Position::getColors() const {
     return this->colors;
 }
 
-Square Position::getPassant() {
+Square Position::getPassant() const {
     return this->passant;
 }
 
@@ -357,14 +359,10 @@ MoveList Position::pseudoLegal(bool player) const {
 MoveList Position::allMoves(bool player) {
     auto moves = pseudoLegal(player);
     auto result = MoveList();
-    for (int i = 0; i < moves.getSize(); i++) {
-        makeMove(moves.getMoves()[i]);
-        if (isKingInCheck(player,findKingSquare(player)) < 64) {
-            unmakeMove(moves.getMoves()[i]);
-            continue;
+    for (int i = 0; i < moves.getSize(); i++) {;
+        if (isLegal(moves.getMoves()[i])) {
+            result.push(moves.getMoves()[i]);
         }
-        unmakeMove(moves.getMoves()[i]);
-        result.push(moves.getMoves()[i]);
     }
     if (result.getSize() == 0) {
         if (isKingInCheck(player,findKingSquare(player))) {
@@ -390,27 +388,101 @@ Square Position::findKingSquare(bool player) const {
 
 Square Position::isKingInCheck(bool player, Square kingSquare) const {
     MoveList enemyMoves = this->pseudoLegal(player ^ 1);
-    for (const auto& move : enemyMoves.getMoves()) {
-        if (move.destination == kingSquare) {
-            return move.origin;
+    for (int i = 0; i < enemyMoves.getSize(); i++) {
+        if (enemyMoves.getMoves()[i].destination == kingSquare) {
+            return enemyMoves.getMoves()[i].origin;
         }
     }
     return noSquare;
 }
 
-/*
+bool Position::isPseudoAttacked(bool player, Square square) {
+    // Directions: first 4 are orthogonal (rook, queen), next 4 are diagonal (bishop, queen), last 8 are knight moves.
+    std::array directions = {
+        std::make_pair(-1, 0), std::make_pair(0, -1), std::make_pair(0, 1), std::make_pair(1, 0),
+        std::make_pair(-1, -1), std::make_pair(-1, 1), std::make_pair(1, -1), std::make_pair(1, 1),
+        std::make_pair(-2, -1), std::make_pair(-2, 1), std::make_pair(-1, -2), std::make_pair(-1, 2),
+        std::make_pair(1, -2), std::make_pair(1, 2), std::make_pair(2, -1), std::make_pair(2, 1)
+    };
 
-bool Position::isPseudoAttacked(bool player, Square square) const {
-    MoveList enemyMoves = this->pseudoLegal(player ^ 1);
-    for(auto& move : enemyMoves.getMoves()) {
-        if (move.destination == square) {
+    int rank = square / 8;
+    int file = square % 8;
+
+    // Check all directions
+    for (int i = 0; i < directions.size(); i++) {
+        int dRank = directions[i].first;
+        int dFile = directions[i].second;
+        int newRank = rank;
+        int newFile = file;
+
+        // Handle sliding pieces (rook, bishop, queen)
+        bool isSlidingPiece = (i < 8);  // First 8 are sliding directions
+
+        do {
+            newRank += dRank;
+            newFile += dFile;
+
+            // If out of bounds, stop checking this direction
+            if (newRank < 0 || newRank >= 8 || newFile < 0 || newFile >= 8) {
+                break;
+            }
+
+            auto newSquare = Square(newRank * 8 + newFile);
+
+            // If we encounter a friendly piece, stop
+            if (colors[player].hasBit(newSquare) and pieceOn(newSquare) != KING) {
+                break;
+            }
+
+            // Check if an opponent piece is attacking this square
+            if (colors[player ^ 1].hasBit(newSquare)) {
+                Piece attackingPiece = pieceOn(newSquare);
+                if (i < 8) {
+                    if (newRank == rank + dRank and newFile == file + dFile) {
+                        if (attackingPiece == KING) {
+                            return true;
+                        }
+                    }
+                }
+                if (i < 4) {
+                    if (attackingPiece == ROOK || attackingPiece == QUEEN) {
+                        return true;
+                    }
+                    break;
+                }
+                if (i < 8) {
+                    if (attackingPiece == BISHOP || attackingPiece == QUEEN) {
+                        return true;
+                    }
+                    break;
+                }
+                if (attackingPiece == KNIGHT) {
+                    return true;  // Knight attacking
+                }
+                break;
+            }
+
+        } while (isSlidingPiece);  // Continue sliding only for rooks, bishops, queens
+    }
+
+    // Check for pawn attacks
+    if (player == WHITE) {
+        if ((colors[player ^ 1].hasBit(square + 9) && pieceOn(static_cast<Square>(square + 9)) == PAWN) ||
+            (colors[player ^ 1].hasBit(square + 7) && pieceOn(static_cast<Square>(square + 7)) == PAWN)) {
+            return true;
+        }
+    } else {  // BLACK pawns
+        if ((colors[player ^ 1].hasBit(square - 9) && pieceOn(static_cast<Square>(square - 9)) == PAWN) ||
+            (colors[player ^ 1].hasBit(square - 7) && pieceOn(static_cast<Square>(square - 7)) == PAWN)) {
             return true;
         }
     }
+
+    // No attack found
     return false;
 }
 
-bool Position::isKingInDoubleCheck(bool player) const {
+bool Position::isKingInDoubleCheck(bool player) {
     Square kingSquare = a1;
     bool flag = false;
     for (int i = 0; i < 64; i++) {
@@ -431,32 +503,35 @@ bool Position::isKingInDoubleCheck(bool player) const {
     return false;
 }
 
-std::array<Square, 7> Position::isBetween(Square square1, Square square2) {
-    std::array result = {noSquare, noSquare, noSquare, noSquare, noSquare, noSquare, noSquare};
-    int i = 0;
-    if (square1 % 8 == square2 % 8) {
-        // Vertical move
-        while (square1 != square2) {
-            result[i++] = square2;
-            square2 = static_cast<Square>(square2 > square1 ? square2 - 8 : square2 + 8);
+std::array<Square, 8> Position::isBetween(Square square1, Square square2) {
+    std::array result = {square2, square1, noSquare, noSquare, noSquare, noSquare, noSquare, noSquare};
+    int i = 2;
+    auto dir = getDirection(square1,square2);
+    if (dir == VERTICAL) {
+        // Vertical move (same file)
+        int step = (square2 > square1) ? 8 : -8;  // Move up or down the file
+        for (int sq = square1+step; sq != square2; sq += step) {
+            result[i++] = static_cast<Square>(sq);
         }
     }
-    else if (square1 / 8 == square2 / 8) {
-        // Horizontal move
-        while (square1 != square2) {
-            result[i++] = square2;
-            square2 = static_cast<Square>(square2 > square1 ? square2 - 1 : square2 + 1);
+    else if (dir == HORIZONTAL) {
+        // Horizontal move (same rank)
+        int step = (square2 > square1) ? 1 : -1;  // Move right or left on the rank
+        for (int sq = square1+step; sq != square2; sq += step) {
+            result[i++] = static_cast<Square>(sq);
         }
     }
-    else if (std::abs((square1 / 8) - (square2 / 8)) == std::abs((square1 % 8) - (square2 % 8))) {
+    else if (dir == DIAGONAL) {
         // Diagonal move
-        while (square1 != square2) {
-            result[i++] = square2;
-            square2 = static_cast<Square>(square2 > square1
-                ? (square2 - 9 * (square1 % 8 < square2 % 8)) - 7 * (square1 % 8 > square2 % 8)
-                : (square2 + 9 * (square1 % 8 < square2 % 8)) + 7 * (square1 % 8 > square2 % 8));
+        int step = (square2 > square1)
+            ? (square1 % 8 < square2 % 8 ? 9 : 7)  // Moving up-right or up-left
+            : (square1 % 8 < square2 % 8 ? -7 : -9);  // Moving down-right or down-left
+
+        for (int sq = square1+step; sq != square2; sq += step) {
+            result[i++] = static_cast<Square>(sq);
         }
     }
+
     return result;
 }
 
@@ -470,6 +545,16 @@ bool Position::isSquareBetween(Square square1,Square square2,Square square3) {
 }
 
 bool Position::isLegal(Move move) {
+    Square kingSquare = findKingSquare(move.player);
+    if (move.type == EN_PASSANT) {
+        makeMove(move);
+        if (isPseudoAttacked(move.player, kingSquare)) {
+            unmakeMove(move);
+            return false;
+        }
+        unmakeMove(move);
+        return true;
+    }
     if (move.type == CASTLE) {
         if (move.destination == move.origin + 2) {
             if (isPseudoAttacked(move.player, move.destination) or
@@ -487,7 +572,7 @@ bool Position::isLegal(Move move) {
         return true;
     }
 
-    if (pieceOn(move.origin) == KING) {
+    if (move.origin == kingSquare) {
         if (isPseudoAttacked(move.player, move.destination)){
             return false;
         }
@@ -496,13 +581,108 @@ bool Position::isLegal(Move move) {
     if (isKingInDoubleCheck(move.player)) {
         return false;
     }
-    Square kingSquare = findKingSquare(move.player);
     Square kingThreat = isKingInCheck(move.player, kingSquare);
     if (kingThreat != noSquare) {
         if (not isSquareBetween(kingSquare, kingThreat,move.destination)){
             return false;
         }
     }
+    auto dir = directionPinned(move.origin);
+    if (dir != NO_DIRECTION) {
+        if (getDirection(move.origin, move.destination) == dir) {
+            return true;
+        }
+        return false;
+    }
     return true;
 }
-*/
+
+Direction Position::getDirection(Square sq1, Square sq2) {
+    if (sq1 / 8 == sq2 / 8) {
+        return HORIZONTAL;
+    }
+    if (sq1 % 8 == sq2 % 8) {
+        return VERTICAL;
+    }
+    if (std::abs((sq1 / 8) - (sq2 / 8)) == std::abs((sq1 % 8) - (sq2 % 8))) {
+        return DIAGONAL;
+    }
+    return NO_DIRECTION;
+}
+
+Direction Position::directionPinned(Square square) {
+    bool color;
+
+    // Determine color of the piece
+    if (this->colors[WHITE].hasBit(square)) {
+        color = WHITE;
+    } else if (this->colors[BLACK].hasBit(square)) {
+        color = BLACK;
+    } else {
+        return NO_DIRECTION;
+    }
+
+    // Check for horizontal, vertical, and diagonal pins
+    if (isPinned(square, color, 1, 0) || isPinned(square, color, -1, 0)) {  // Horizontal
+        return HORIZONTAL;
+    }
+    if (isPinned(square, color, 0, 8) || isPinned(square, color, 0, -8)) {  // Vertical
+        return VERTICAL;
+    }
+    if (isPinned(square, color, 9, 0) || isPinned(square, color, -9, 0)) {  // Diagonal (right-down, left-up)
+        return DIAGONAL;
+    }
+    if (isPinned(square, color, 7, 0) || isPinned(square, color, -7, 0)) {  // Diagonal (left-down, right-up)
+        return DIAGONAL;
+    }
+
+    return NO_DIRECTION;
+}
+
+// Helper function to check for pin in any direction
+bool Position::isPinned(Square square, bool color, int horizontalInc, int verticalInc) {
+    int flag = 0b00;
+    auto newSquare = square + horizontalInc + verticalInc;
+
+    // Move in the direction to see if there's a pinning piece
+    while (isValid(Square(newSquare))) {
+        auto piece = pieceOn(static_cast<Square>(newSquare));
+        if (piece == noSquare) {
+            newSquare += horizontalInc + verticalInc;
+            continue;
+        }
+        if (piece == KING && this->colors[color].hasBit(newSquare)) {
+            flag += 0b01;
+            break;
+        }
+        if ((piece == ROOK || piece == QUEEN || piece == BISHOP) && this->colors[color ^ 1].hasBit(newSquare)) {
+            flag += 0b10;
+            break;
+        }
+        break;
+    }
+
+    // Move in the opposite direction to confirm pin
+    newSquare = square - horizontalInc - verticalInc;
+    while (flag > 0b00 && isValid(Square(newSquare))) {
+        auto piece = pieceOn(static_cast<Square>(newSquare));
+        if (piece == noSquare) {
+            newSquare -= horizontalInc + verticalInc;
+            continue;
+        }
+        if (piece == KING && this->colors[color].hasBit(newSquare)) {
+            return true;  // Confirm the piece is pinned
+        }
+        if ((piece == ROOK || piece == QUEEN || piece == BISHOP) && this->colors[color ^ 1].hasBit(newSquare) && flag == 0b01) {
+            return true;  // Confirm the piece is pinned
+        }
+        break;
+    }
+
+    return false;
+}
+
+// Helper function to validate board boundaries
+bool Position::isValid(Square square) {
+    return (square >= 0 && square < 64);  // Ensure the square is within the board's limits
+}
