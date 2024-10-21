@@ -52,7 +52,7 @@ public:
     static Direction getDirection(Square sq1, Square sq2);
     Direction directionPinned(Square square);
     bool isPinned(Square square, bool color, int horizontalInc, int verticalInc);
-    bool isValid(Square square);
+    static bool isValid(Square square);
 };
 
 
