@@ -83,8 +83,8 @@ struct Move {
 };
 
 inline std::string squareToString(Square square) {
-    char file = 'a' + (square % 8);
-    char rank = '1' + (square / 8);
+    char file = static_cast<char>('a' + (square % 8));
+    char rank = static_cast<char>('1' + (square / 8));
 
     return std::string(1, file) + rank;
 };
@@ -120,7 +120,8 @@ inline std::ostream& operator<<(std::ostream& os, const Move& i) {
         os << "(" << i.origin << ", " << i.destination << ", " << i.type << ", " << i.player << ")";
     }
     else {
-        os << "(" << i.origin << ", " << i.destination << ", " << i.type << ", " << i.player << ", " << int(i.promotion) << ")";
+        os << "(" << i.origin << ", " << i.destination << ", " << i.type << ", "
+        << i.player << ", " << i.promotion << ")";
     }
     return os;
 };
