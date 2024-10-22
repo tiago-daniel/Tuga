@@ -6,6 +6,7 @@
 #define UTILS_H
 
 #include <iostream>
+#include <array>
 
     inline unsigned int long long Bit(int n) {
         return 1ULL << n;
@@ -75,15 +76,24 @@ inline std::string squareToString(Square square) {
 
 inline std::string pieceToString(Piece piece) {
     switch (piece) {
-        case PAWN:   return "Pawn";
-        case KNIGHT: return "Knight";
-        case BISHOP: return "Bishop";
-        case ROOK:   return "Rook";
-        case QUEEN:  return "Queen";
-        case KING:   return "King";
-        default:     return "Unknown Piece";
+        case PAWN:
+            return "Pawn";
+        case KNIGHT:
+            return "Knight";
+        case BISHOP:
+            return "Bishop";
+        case ROOK:
+            return "Rook";
+        case QUEEN:
+            return "Queen";
+        case KING:
+            return "King";
+        default:
+            return "Unknown Piece";
     }
 }
+
+inline std::array values {1, 3, 3, 5, 9, 0};
 
 inline std::ostream& operator<<(std::ostream& os, const Square square) {
     os << squareToString(square);
@@ -106,4 +116,5 @@ inline std::string printMove(const Move& i) {
     }
     return squareToString(i.origin) + " " + squareToString(i.destination) + " " + pieceToString(i.promotion);
 }
+
 #endif //UTILS_H

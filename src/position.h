@@ -4,7 +4,6 @@
 
 #ifndef GAME_H
 #define GAME_H
-#include <array>
 #include <stack>
 #include <cassert>
 #include "movegen.h"
@@ -14,6 +13,7 @@ enum Result { WIN = 1, DRAW = 0, LOSS = -1 };
 class Position {
     std::array<Bitboard, 2> colors;
     std::array<Bitboard, 6> boards;
+    std::array<int, 2> materials;
     std::array<Piece, 64> pieces{};
     int draw_count = 0;
     bool current_player = WHITE;
@@ -41,7 +41,7 @@ public:
     [[nodiscard]] int getCastlingRights() const;
     [[nodiscard]] bool getCurrentPlayer() const;
     [[nodiscard]] bool isKingInDoubleCheck(bool player) const;
-    bool insufficientMaterial();
+    bool insufficientMaterial() const;
     void print() const;
     [[nodiscard]] MoveList pseudoLegal(bool player) const;
     MoveList allMoves(bool player);

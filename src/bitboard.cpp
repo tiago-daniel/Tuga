@@ -39,3 +39,7 @@ void Bitboard::print() const {
         std::cout << std::endl;
     }
 }
+
+unsigned int long long Bitboard::countBits(Bitboard mask) const {
+    return __builtin_popcountll(this->positions & mask.getBitboard());  // Counts bits in the bitboard
+}

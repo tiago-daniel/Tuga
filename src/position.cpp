@@ -6,6 +6,7 @@
 
 Position::Position() {
     this->colors = {Bitboard(0xFFFF),Bitboard(0xFFFF000000000000)};
+    this->materials = {39, 39};
     this->boards = {Bitboard(0x00FF00000000FF00),Bitboard(0x4200000000000042)
         ,Bitboard(0x2400000000000024),Bitboard(0x8100000000000081),
         Bitboard(0x0800000000000008),Bitboard(0x1000000000000010)};
@@ -58,6 +59,7 @@ std::stack<Piece> Position::getStack() {
 
 void Position::unmakeMove(const Move &move) {
     Piece capturedPiece = this->captured_pieces.top();
+    this->materials[move.player ^ 1] += values[capturedPiece];
     this->captured_pieces.pop();
 
     // Restore castling rights
@@ -113,11 +115,15 @@ void Position::unmakeMove(const Move &move) {
 }
 
 void Position::makeMove(const Move &move) {
-    this->captured_pieces.push(pieceOn(move.destination));
-    if (pieceOn(move.destination) == EMPTY) {
+    auto captured = pieceOn(move.destination);
+    this->captured_pieces.push(captured);
+    if (captured == EMPTY) {
         this->draw_count++;
     }
-    else {this->draw_count = 0;}
+    else {
+        this->draw_count = 0;
+        this->materials[move.player ^ 1] -= values[captured];
+    }
     switch (move.type) {
         case EN_PASSANT:
             passantMove(move);
@@ -528,7 +534,7 @@ bool Position::isKingInDoubleCheck(bool player) const {
     Square kingSquare = findKingSquare(player);
     Square flag = noSquare;
     MoveList enemyMoves = this->pseudoLegal(player ^ 1);
-    for (int i = 0; i < enemyMoves.getSize();i++) {
+    for (int i = 0; i < enemyMoves.getSize(); i++) {
         if (enemyMoves.getMoves()[i].destination == kingSquare) {
             if (flag != noSquare and flag != enemyMoves.getMoves()[i].origin) {
                 return true;
@@ -538,25 +544,9 @@ bool Position::isKingInDoubleCheck(bool player) const {
     }
     return false;
 }
-
-bool Position::insufficientMaterial() {
-    bool white = false;
-    bool black = false;
+bool Position::insufficientMaterial() const {
     if (this->boards[PAWN].getBitboard() != 0) {return false;}
-    if (this->boards[ROOK].getBitboard() != 0) {return false;}
-    if (this->boards[QUEEN].getBitboard() != 0) {return false;}
-    for (Square i = a1; i < h8; i= static_cast<Square>(i + 1)) {
-        if (pieceOn(i) == BISHOP or pieceOn(i) == KNIGHT) {
-            if (white and this->colors[WHITE].hasBit(i)) {
-                return true;
-            }
-            if (black and this->colors[BLACK].hasBit(i)) {
-                return true;
-            }
-            white = this->colors[WHITE].hasBit(i);
-            black = this->colors[BLACK].hasBit(i);
-        }
-    }
+    if (materials[WHITE] < 4 and materials[BLACK] < 4) {return true;}
     return false;
 }
 

@@ -17,6 +17,7 @@ public:
     void removeBit(int bit);
     void addBit(int bit);
     void print() const;
+    unsigned int long long countBits(Bitboard mask) const;
     void setBitboard(unsigned int long long positions);
     [[nodiscard]] bool hasBit(int bit) const;
 };
