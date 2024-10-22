@@ -59,7 +59,7 @@ void Position::initZobrist() {
     for (auto & i : this->castleHash) {
         this->castleHash[i] = randomU64();
     }
-    this->currentHash = hash();
+    newHash(hash());
 }
 
 void Position::newHash(uint64_t hash) {
@@ -218,8 +218,9 @@ void Position::makeMove(const Move &move) {
     newHash(hashedBoard);
     int count = 0;
     for (int i = 0; i < hhSize; i++) {
+        std::cout << hashHistory[i] << std::endl;
         if (hashHistory[i] == hashedBoard) {
-            count++;
+            count+=1;
         }
         if (count == 3) {
             endGame(0);
