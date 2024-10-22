@@ -14,11 +14,11 @@ void MoveGen::pawnMove(MoveList &moves, Square square, bool color, Bitboard alli
     if (color == WHITE) {
         if(square<(64-8) and square>=(64-16)) {
             type = PROMOTION;
-            if (not (board.getBitboard() & Bit(square+8))) {
+            if (not (board.getBitboard() & Bit(square + 8))) {
                 for (Piece piece: pieces) {
                     moves.push(Move{
                         square,                                             // origin
-                        static_cast<Square >(square+8),               // destination
+                        static_cast<Square >(square + 8),               // destination
                         color,
                         PROMOTION,                                           // type
                         piece
@@ -109,7 +109,7 @@ void MoveGen::pawnMove(MoveList &moves, Square square, bool color, Bitboard alli
                     for (Piece piece: pieces) {
                         moves.push(Move{
                             square,                                             // origin
-                            static_cast<Square >(square+8),               // destination
+                            static_cast<Square >(square-8),               // destination
                             color,
                             PROMOTION,                                           // type
                             piece
