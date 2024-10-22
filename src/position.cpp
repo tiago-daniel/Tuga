@@ -49,6 +49,10 @@ uint64_t Position::hashSquare(uint64_t hash, Square square) const {
     return hash^transpositionTable[square][pieces[square] + 6 * colors[BLACK].hasBit(square)];
 }
 
+int Position::getMaterials(bool color) const {
+    return this->materials[color];
+}
+
 void Position::initZobrist() {
     for (auto & i : this->transpositionTable) {
         for (uint64_t& j : i) {
@@ -57,7 +61,7 @@ void Position::initZobrist() {
     }
     this->blackHash = randomU64();
     for (auto & i : this->castleHash) {
-        this->castleHash[i] = randomU64();
+        i = randomU64();
     }
     newHash(hash());
 }
@@ -189,9 +193,8 @@ void Position::makeMove(const Move &move) {
     assert(move.origin < 64);
     assert(move.origin >= 0);
     assert(move.type == EN_PASSANT or (pseudoAttacker(current_player, findKingSquare(current_player)) == noSquare));
-    this->current_player ^= 1;
     if (this->can_castle & 0b0001) {
-        if (pieceOn(e1) != KING or pieceOn(h1) != ROOK ) {
+        if (pieceOn(e1) != KING or pieceOn(h1) != ROOK or this->colors[WHITE].hasBit(e1)) {
             hashedBoard ^= castleHash[0];
             this->can_castle &= 0b1110;
         }
@@ -214,11 +217,11 @@ void Position::makeMove(const Move &move) {
             this->can_castle &= 0b0111;
         }
     }
-    hashedBoard ^= blackHash;;
+    this->current_player ^= 1;
+    hashedBoard ^= blackHash;
     newHash(hashedBoard);
     int count = 0;
     for (int i = 0; i < hhSize; i++) {
-        std::cout << hashHistory[i] << std::endl;
         if (hashHistory[i] == hashedBoard) {
             count+=1;
         }
@@ -676,7 +679,7 @@ std::array<Square, 8> Position::isBetween(Square square1, Square square2) {
     return result;
 }
 
-bool Position::isLegal(const Move &move) {
+bool Position::isLegal(const Move &move) const {
     Square kingSquare = findKingSquare(move.player);
     assert(isValid(move.origin));
 

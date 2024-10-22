@@ -4,6 +4,7 @@
 
 #ifndef GAME_H
 #define GAME_H
+
 #include <cassert>
 #include <cstdint>
 #include <stack>
@@ -15,11 +16,11 @@ enum Result { WIN = 1, DRAW = 0, LOSS = -1 };
 class Position {
     std::array<Bitboard, 2> colors;
     std::array<Bitboard, 6> boards;
-    std::array<int, 2> materials;
+    std::array<int, 2> materials{};
     std::array<Piece, 64> pieces{};
-    uint64_t transpositionTable[64][12];
+    uint64_t transpositionTable[64][12]{};
     uint64_t blackHash = 0;
-    uint64_t castleHash[4];
+    uint64_t castleHash[4]{};
     uint64_t currentHash = 0;
     std::array<uint64_t,1024> hashHistory{};
     int hhSize = 0;
@@ -32,8 +33,9 @@ class Position {
 public:
     Position();
     static uint_fast64_t randomU64();
-    uint64_t hash() const;
-    uint64_t hashSquare(uint64_t hash, Square square) const;
+    [[nodiscard]] uint64_t hash() const;
+    [[nodiscard]] uint64_t hashSquare(uint64_t hash, Square square) const;
+    [[nodiscard]] int getMaterials(bool color) const;
     void initZobrist();
     void newHash(uint64_t hash);
     void endGame(int score);
@@ -62,7 +64,7 @@ public:
     [[nodiscard]] Square pseudoAttacker(bool player, Square square) const;
     [[nodiscard]] bool isPseudoAttacked(bool player, Square square) const;
     static bool isSquareBetween(Square square1,Square square2,Square square3);
-    bool isLegal(const Move &move);
+    bool isLegal(const Move &move) const;
     static Direction getDirection(Square sq1, Square sq2);
     [[nodiscard]] Direction directionPinned(Square square) const;
     [[nodiscard]] bool isPinned(Square square, bool color, int horizontalInc, int verticalInc) const;
