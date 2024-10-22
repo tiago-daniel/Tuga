@@ -159,6 +159,9 @@ void Position::makeMove(const Move &move) {
     if (draw_count == 50) {
         endGame(0);
     }
+    if (insufficientMaterial()) {
+        endGame(0);
+    }
 }
 
 void Position::promotionMove(const Move &move) {
@@ -536,6 +539,27 @@ bool Position::isKingInDoubleCheck(bool player) const {
     return false;
 }
 
+bool Position::insufficientMaterial() {
+    bool white = false;
+    bool black = false;
+    if (this->boards[PAWN].getBitboard() != 0) {return false;}
+    if (this->boards[ROOK].getBitboard() != 0) {return false;}
+    if (this->boards[QUEEN].getBitboard() != 0) {return false;}
+    for (Square i = a1; i < h8; i= static_cast<Square>(i + 1)) {
+        if (pieceOn(i) == BISHOP or pieceOn(i) == KNIGHT) {
+            if (white and this->colors[WHITE].hasBit(i)) {
+                return true;
+            }
+            if (black and this->colors[BLACK].hasBit(i)) {
+                return true;
+            }
+            white = this->colors[WHITE].hasBit(i);
+            black = this->colors[BLACK].hasBit(i);
+        }
+    }
+    return false;
+}
+
 std::array<Square, 8> Position::isBetween(Square square1, Square square2) {
     std::array result = {square2, square1, noSquare, noSquare, noSquare, noSquare, noSquare, noSquare};
     int i = 2;
@@ -716,16 +740,22 @@ Direction Position::directionPinned(Square square) const {
 bool Position::isPinned(Square square, bool color, int horizontalInc, const int verticalInc) const {
     assert(isValid(square));
 
+    int rank = square / 8;
+    int file = square % 8;
+
     // Step 1: Check in the direction towards the attacker
-    auto newSquare = static_cast<Square>(square + horizontalInc + 8 * verticalInc);
+    int newRank = rank + verticalInc;
+    int newFile = file + horizontalInc;
 
     // Traverse towards the direction of the potential attacker
-    while (isValid(newSquare)) {
+    while (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) {
+        auto newSquare = static_cast<Square>(newRank * 8 + newFile);
         auto piece = pieceOn(newSquare);
 
         if (piece == EMPTY) {
             // Continue searching in the same direction
-            newSquare = static_cast<Square>(newSquare + horizontalInc + 8 * verticalInc);
+            newRank += verticalInc;
+            newFile += horizontalInc;
             continue;
         }
 
@@ -745,19 +775,22 @@ bool Position::isPinned(Square square, bool color, int horizontalInc, const int 
     }
 
     // If we didn't find an attacker, return false
-    if (!isValid(newSquare)) {
+    if (!(newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8)) {
         return false;
     }
 
     // Step 2: Reset the square and check in the direction towards the king
-    newSquare = static_cast<Square>(square - horizontalInc - 8 * verticalInc);  // Move in the opposite direction
+    newRank = rank - verticalInc;
+    newFile = file - horizontalInc;
 
-    while (isValid(newSquare)) {
+    while (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) {
+        auto newSquare = static_cast<Square>(newRank * 8 + newFile);
         auto piece = pieceOn(newSquare);
 
         if (piece == EMPTY) {
             // Continue searching in the opposite direction
-            newSquare = static_cast<Square>(newSquare - horizontalInc - 8 * verticalInc);
+            newRank -= verticalInc;
+            newFile -= horizontalInc;
             continue;
         }
 
@@ -772,6 +805,7 @@ bool Position::isPinned(Square square, bool color, int horizontalInc, const int 
 
     return false;  // No valid pin found
 }
+
 
 
 
