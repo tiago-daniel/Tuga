@@ -104,8 +104,6 @@ inline std::string printMove(const Move& i) {
     if (i.promotion == PAWN) {
         return  squareToString(i.origin) + " " + squareToString(i.destination);
     }
-    else {
-        return squareToString(i.origin) + " " + squareToString(i.destination) + " " + pieceToString(i.promotion);
-    }
+    return squareToString(i.origin) + " " + squareToString(i.destination) + " " + pieceToString(i.promotion);
 }
 #endif //UTILS_H

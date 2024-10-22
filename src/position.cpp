@@ -56,7 +56,7 @@ std::stack<Piece> Position::getStack() {
     return this->captured_pieces;
 }
 
-void Position::unmakeMove(Move move) {
+void Position::unmakeMove(const Move &move) {
     Piece capturedPiece = this->captured_pieces.top();
     this->captured_pieces.pop();
 
@@ -112,7 +112,7 @@ void Position::unmakeMove(Move move) {
     this->current_player ^= 1;
 }
 
-void Position::makeMove(Move move) {
+void Position::makeMove(const Move &move) {
     this->captured_pieces.push(pieceOn(move.destination));
     if (pieceOn(move.destination) == EMPTY) {
         this->draw_count++;
@@ -161,7 +161,7 @@ void Position::makeMove(Move move) {
     }
 }
 
-void Position::promotionMove(Move move) {
+void Position::promotionMove(const Move &move) {
     for (auto &board : this->boards) {
         if (board.getBitboard() & Bit(move.destination)) {
             board.removeBit(move.destination);
@@ -178,7 +178,7 @@ void Position::promotionMove(Move move) {
     pieces[move.destination] = move.promotion;
 }
 
-void Position::castleMove(Move move) {
+void Position::castleMove(const Move &move) {
     if (move.origin + 2 == move.destination) {
         for (auto &board : this->boards) {
             if (board.getBitboard() & Bit(move.origin)) {
@@ -221,11 +221,11 @@ void Position::castleMove(Move move) {
     }
 }
 
-Piece Position::pieceOn(Square square) {
+Piece Position::pieceOn(const Square square) const {
     return this->pieces[square];
 }
 
-void Position::passantMove(Move move) {
+void Position::passantMove(const Move &move) {
     // Clear the en passant bit on the board
     for (auto &board : this->boards) {
         board.removeBit(this->passant);  // Clear the en passant square
@@ -254,7 +254,7 @@ void Position::passantMove(Move move) {
     colors[current_player].addBit(move.destination);
 }
 
-void Position::normalMove(Move move) {
+void Position::normalMove(const Move &move) {
     for (auto &board : this->boards) {
         if (board.hasBit(move.destination)) {
             board.removeBit(move.destination);
@@ -412,7 +412,7 @@ Square Position::findKingSquare(bool player) const {
     return kingSquare;
 }
 
-Square Position::pseudoAttacker(bool player, Square square) {
+Square Position::pseudoAttacker(bool player, Square square) const {
     // Directions: first 4 are orthogonal (rook, queen), next 4 are diagonal (bishop, queen), last 8 are knight moves.
     std::array directions = {
         std::make_pair(-1, 0), std::make_pair(0, -1), std::make_pair(0, 1), std::make_pair(1, 0),
@@ -443,7 +443,7 @@ Square Position::pseudoAttacker(bool player, Square square) {
                 break;
             }
 
-            auto newSquare = Square(newRank * 8 + newFile);
+            auto newSquare = static_cast<Square>(newRank * 8 + newFile);
             // If we encounter a friendly piece, stop
             if (colors[player].hasBit(newSquare) and pieceOn(newSquare) != KING) {
                 break;
@@ -517,20 +517,20 @@ Square Position::pseudoAttacker(bool player, Square square) {
     return noSquare;
 }
 
-bool Position::isPseudoAttacked(bool player, Square square) {
+bool Position::isPseudoAttacked(bool player, Square square) const {
     return pseudoAttacker(player, square) != noSquare;
 }
 
-bool Position::isKingInDoubleCheck(bool player) {
+bool Position::isKingInDoubleCheck(bool player) const {
     Square kingSquare = findKingSquare(player);
-    bool flag = false;
+    Square flag = noSquare;
     MoveList enemyMoves = this->pseudoLegal(player ^ 1);
     for (int i = 0; i < enemyMoves.getSize();i++) {
         if (enemyMoves.getMoves()[i].destination == kingSquare) {
-            if (flag == true) {
+            if (flag != noSquare and flag != enemyMoves.getMoves()[i].origin) {
                 return true;
             }
-            flag = true;
+            flag = enemyMoves.getMoves()[i].origin;
         }
     }
     return false;
@@ -573,7 +573,7 @@ std::array<Square, 8> Position::isBetween(Square square1, Square square2) {
     return result;
 }
 
-bool Position::isLegal(Move move) {
+bool Position::isLegal(const Move &move) {
     Square kingSquare = findKingSquare(move.player);
     assert(isValid(move.origin));
 
@@ -681,7 +681,7 @@ Direction Position::getDirection(Square sq1, Square sq2) {
     return NO_DIRECTION;
 }
 
-Direction Position::directionPinned(Square square) {
+Direction Position::directionPinned(Square square) const {
     assert(isValid(square));
     bool color;
 
@@ -713,7 +713,7 @@ Direction Position::directionPinned(Square square) {
 
 
 // Helper function to check for pin in any direction
-bool Position::isPinned(Square square, bool color, int horizontalInc, int verticalInc) {
+bool Position::isPinned(Square square, bool color, int horizontalInc, const int verticalInc) const {
     assert(isValid(square));
 
     // Step 1: Check in the direction towards the attacker

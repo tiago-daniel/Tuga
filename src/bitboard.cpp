@@ -30,7 +30,7 @@ void Bitboard::addBit(int bit) {
     this->positions |= Bit(bit);
 }
 
-void Bitboard::print() {
+void Bitboard::print() const {
     for (int row = 7; row >= 0; row--) {
         for (int col = 0; col < 8; col++) {
             int n = row * 8 + col;
