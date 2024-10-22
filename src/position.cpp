@@ -4,6 +4,8 @@
 
 #include "position.h"
 
+#include <random>
+
 Position::Position() {
     this->colors = {Bitboard(0xFFFF),Bitboard(0xFFFF000000000000)};
     this->materials = {39, 39};
@@ -21,12 +23,53 @@ Position::Position() {
         ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK,
     };
     this->captured_pieces = {};
+    initZobrist();
+}
+
+uint64_t Position::randomU64() {
+    constexpr int rand = 0x1333317;
+    static std::mt19937_64 mt(rand);
+    std::uniform_int_distribution<uint64_t> dist{};
+    return dist(mt);
+}
+
+uint64_t Position::hash() const {
+    uint64_t hash = 0;
+    if (current_player == BLACK) {hash ^= blackHash;}
+    for (int i = 0; i < 64;i++) {
+        if (pieceOn(static_cast<Square>(i)) != EMPTY) {
+            hash ^= hashSquare(hash, static_cast<Square>(i));
+        }
+    }
+    return hash;
+}
+
+uint64_t Position::hashSquare(uint64_t hash, Square square) const {
+    if (pieces[square] == EMPTY) {return hash;}
+    return hash^transpositionTable[square][pieces[square] + 6 * colors[BLACK].hasBit(square)];
+}
+
+void Position::initZobrist() {
+    for (auto & i : this->transpositionTable) {
+        for (uint64_t& j : i) {
+            j = randomU64();
+        }
+    }
+    this->blackHash = randomU64();
+    for (auto & i : this->castleHash) {
+        this->castleHash[i] = randomU64();
+    }
+    this->currentHash = hash();
+}
+
+void Position::newHash(uint64_t hash) {
+    this->currentHash = hash;
+    this->hashHistory[this->hhSize] = hash;
+    this->hhSize++;
 }
 
 void Position::endGame(int score) {
-    if (this->result == 2) {
-        this->result = score;
-    }
+    this->result = score;
 }
 
 int Position::getResult() const {
@@ -59,6 +102,9 @@ std::stack<Piece> Position::getStack() {
 
 void Position::unmakeMove(const Move &move) {
     Piece capturedPiece = this->captured_pieces.top();
+    this->hashHistory[hhSize] = 0;
+    this->hhSize--;
+    this->currentHash = this->hashHistory[hhSize-1];
     this->materials[move.player ^ 1] += values[capturedPiece];
     this->captured_pieces.pop();
 
@@ -112,10 +158,12 @@ void Position::unmakeMove(const Move &move) {
     // Restore the piece's original position and flip the player
     this->pieces[move.origin] = pieceOn(move.destination);
     this->current_player ^= 1;
+    this->endGame(2);
 }
 
 void Position::makeMove(const Move &move) {
     auto captured = pieceOn(move.destination);
+    uint64_t hashedBoard;
     this->captured_pieces.push(captured);
     if (captured == EMPTY) {
         this->draw_count++;
@@ -126,16 +174,16 @@ void Position::makeMove(const Move &move) {
     }
     switch (move.type) {
         case EN_PASSANT:
-            passantMove(move);
+            hashedBoard = passantMove(move);
             break;
         case NORMAL:
-            normalMove(move);
+            hashedBoard = normalMove(move);
             break;
         case CASTLE:
-            castleMove(move);
+            hashedBoard = castleMove(move);
             break;
         default:
-            promotionMove(move);
+            hashedBoard = promotionMove(move);
             break;
     }
     assert(move.origin < 64);
@@ -144,22 +192,38 @@ void Position::makeMove(const Move &move) {
     this->current_player ^= 1;
     if (this->can_castle & 0b0001) {
         if (pieceOn(e1) != KING or pieceOn(h1) != ROOK ) {
+            hashedBoard ^= castleHash[0];
             this->can_castle &= 0b1110;
         }
     }
     if (this->can_castle & 0b0010) {
         if (pieceOn(e1) != KING or pieceOn(a1) != ROOK ) {
+            hashedBoard ^= castleHash[1];
             this->can_castle &= 0b1101;
         }
     }
     if (this->can_castle & 0b0100) {
         if (pieceOn(e8) != KING or pieceOn(h8) != ROOK ) {
+            hashedBoard ^= castleHash[2];
             this->can_castle &= 0b1011;
         }
     }
     if (this->can_castle & 0b1000){
         if (pieceOn(e8) != KING or pieceOn(a8) != ROOK ) {
+            hashedBoard ^= castleHash[3];
             this->can_castle &= 0b0111;
+        }
+    }
+    hashedBoard ^= blackHash;;
+    newHash(hashedBoard);
+    int count = 0;
+    for (int i = 0; i < hhSize; i++) {
+        std::cout << hashHistory[i]<< std::endl;
+        if (hashHistory[i] == hashedBoard) {
+            count++;
+        }
+        if (count == 3) {
+            endGame(0);
         }
     }
     if (draw_count == 50) {
@@ -170,7 +234,10 @@ void Position::makeMove(const Move &move) {
     }
 }
 
-void Position::promotionMove(const Move &move) {
+uint64_t Position::promotionMove(const Move &move) {
+    auto hashedBoard = hash();
+    hashedBoard = hashSquare(hashedBoard, move.origin);
+    hashedBoard = hashSquare(hashedBoard, move.destination);
     for (auto &board : this->boards) {
         if (board.getBitboard() & Bit(move.destination)) {
             board.removeBit(move.destination);
@@ -185,10 +252,15 @@ void Position::promotionMove(const Move &move) {
     this->boards[move.promotion].addBit(move.destination);
     pieces[move.origin] = EMPTY;
     pieces[move.destination] = move.promotion;
+    hashedBoard = hashSquare(hashedBoard, move.destination);
+    return hashedBoard;
 }
 
-void Position::castleMove(const Move &move) {
+uint64_t Position::castleMove(const Move &move) {
+    auto hashedBoard = this->currentHash;
     if (move.origin + 2 == move.destination) {
+        hashedBoard = hashSquare(hashedBoard, move.origin);
+        hashedBoard = hashSquare(hashedBoard, static_cast<Square>(move.origin + 2));
         for (auto &board : this->boards) {
             if (board.getBitboard() & Bit(move.origin)) {
                 board.removeBit(move.origin);
@@ -207,8 +279,12 @@ void Position::castleMove(const Move &move) {
         colors[current_player].addBit(move.destination);
         colors[current_player].removeBit(move.origin+3);
         colors[current_player].addBit(move.destination-1);
+        hashedBoard = hashSquare(hashedBoard, move.destination);
+        hashedBoard = hashSquare(hashedBoard, static_cast<Square>(move.destination - 1));
     }
     else {
+        hashedBoard = hashSquare(hashedBoard, move.origin);
+        hashedBoard = hashSquare(hashedBoard, static_cast<Square>(move.origin - 2));
         for (auto &board : this->boards) {
             if (board.getBitboard() & Bit(move.origin)) {
                 board.removeBit(move.origin);
@@ -227,14 +303,20 @@ void Position::castleMove(const Move &move) {
         colors[current_player].addBit(move.destination);
         colors[current_player].removeBit(move.destination-2);
         colors[current_player].addBit(move.destination+1);
+        hashedBoard = hashSquare(hashedBoard, move.destination);
+        hashedBoard = hashSquare(hashedBoard, static_cast<Square>(move.destination + 1));
     }
+    return hashedBoard;
 }
 
 Piece Position::pieceOn(const Square square) const {
     return this->pieces[square];
 }
 
-void Position::passantMove(const Move &move) {
+uint64_t Position::passantMove(const Move &move) {
+    auto hashedBoard = this->currentHash;
+    hashedBoard = hashSquare(hashedBoard, move.origin);
+    hashedBoard = hashSquare(hashedBoard, this->passant);
     // Clear the en passant bit on the board
     for (auto &board : this->boards) {
         board.removeBit(this->passant);  // Clear the en passant square
@@ -261,9 +343,14 @@ void Position::passantMove(const Move &move) {
     // Update color bitboards
     colors[current_player].removeBit(move.origin);
     colors[current_player].addBit(move.destination);
+    hashedBoard = hashSquare(hashedBoard, move.destination);
+    return hashedBoard;
 }
 
-void Position::normalMove(const Move &move) {
+uint64_t Position::normalMove(const Move &move) {
+    auto hashedBoard = this->currentHash;
+    hashedBoard = hashSquare(hashedBoard, move.origin);
+    hashedBoard = hashSquare(hashedBoard, move.destination);
     for (auto &board : this->boards) {
         if (board.hasBit(move.destination)) {
             board.removeBit(move.destination);
@@ -285,6 +372,8 @@ void Position::normalMove(const Move &move) {
     colors[current_player].removeBit(move.origin);
     colors[current_player ^ 1].removeBit(move.destination);
     colors[current_player].addBit(move.destination);
+    hashedBoard = hashSquare(hashedBoard, move.destination);
+    return hashedBoard;
 }
 
 bool Position::getCurrentPlayer() const {
@@ -591,16 +680,6 @@ bool Position::isLegal(const Move &move) {
     Square kingSquare = findKingSquare(move.player);
     assert(isValid(move.origin));
 
-    // En passant handling
-    if (move.type == EN_PASSANT) {
-        makeMove(move);
-        if (isPseudoAttacked(move.player, kingSquare)) {
-            unmakeMove(move);
-            return false;
-        }
-        unmakeMove(move);
-        return true;
-    }
 
     // Castling handling
     if (move.type == CASTLE) {

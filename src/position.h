@@ -4,8 +4,10 @@
 
 #ifndef GAME_H
 #define GAME_H
-#include <stack>
 #include <cassert>
+#include <cstdint>
+#include <stack>
+
 #include "movegen.h"
 
 enum Result { WIN = 1, DRAW = 0, LOSS = -1 };
@@ -15,6 +17,12 @@ class Position {
     std::array<Bitboard, 6> boards;
     std::array<int, 2> materials;
     std::array<Piece, 64> pieces{};
+    uint64_t transpositionTable[64][12];
+    uint64_t blackHash = 0;
+    uint64_t castleHash[4];
+    uint64_t currentHash = 0;
+    std::array<uint64_t,1024> hashHistory{};
+    int hhSize = 0;
     int draw_count = 0;
     bool current_player = WHITE;
     Square passant = a1;
@@ -23,6 +31,11 @@ class Position {
     int result = 2;
 public:
     Position();
+    static uint_fast64_t randomU64();
+    uint64_t hash() const;
+    uint64_t hashSquare(uint64_t hash, Square square) const;
+    void initZobrist();
+    void newHash(uint64_t hash);
     void endGame(int score);
     [[nodiscard]] int getResult() const;
     [[nodiscard]] int getDrawCount() const;
@@ -32,16 +45,16 @@ public:
     void makeMove(const Move &move);
     void unmakeMove(const Move &move);
     [[nodiscard]] Square findKingSquare(bool player) const;
-    void promotionMove(const Move &move);
-    void castleMove(const Move &move);
     [[nodiscard]] Piece pieceOn(Square square) const;
-    void passantMove(const Move &move);
-    void normalMove(const Move &move);
+    uint64_t promotionMove(const Move &move);
+    uint64_t castleMove(const Move &move);
+    uint64_t passantMove(const Move &move);
+    uint64_t normalMove(const Move &move);
     [[nodiscard]] Square getPassant() const;
     [[nodiscard]] int getCastlingRights() const;
     [[nodiscard]] bool getCurrentPlayer() const;
     [[nodiscard]] bool isKingInDoubleCheck(bool player) const;
-    bool insufficientMaterial() const;
+    [[nodiscard]] bool insufficientMaterial() const;
     void print() const;
     [[nodiscard]] MoveList pseudoLegal(bool player) const;
     MoveList allMoves(bool player);
