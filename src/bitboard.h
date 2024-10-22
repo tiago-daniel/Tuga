@@ -13,12 +13,12 @@ class Bitboard {
 public:
     Bitboard();
     explicit Bitboard(unsigned int long long positions);
-    unsigned int long long getBitboard() const;
+    [[nodiscard]] unsigned int long long getBitboard() const;
     void removeBit(int bit);
     void addBit(int bit);
-    void print();
+    void print() const;
     void setBitboard(unsigned int long long positions);
-    bool hasBit(int bit) const;
+    [[nodiscard]] bool hasBit(int bit) const;
 };
 
 
