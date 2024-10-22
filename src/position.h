@@ -41,6 +41,7 @@ public:
     [[nodiscard]] int getCastlingRights() const;
     [[nodiscard]] bool getCurrentPlayer() const;
     [[nodiscard]] bool isKingInDoubleCheck(bool player) const;
+    bool insufficientMaterial();
     void print() const;
     [[nodiscard]] MoveList pseudoLegal(bool player) const;
     MoveList allMoves(bool player);
