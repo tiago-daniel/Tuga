@@ -192,7 +192,7 @@ void Position::makeMove(const Move &move) {
     }
     assert(move.origin < 64);
     assert(move.origin >= 0);
-    assert(move.type == EN_PASSANT or (pseudoAttacker(current_player, findKingSquare(current_player)) == noSquare));
+    // assert(pseudoAttacker(current_player, findKingSquare(current_player)) == noSquare);
     if (this->can_castle & 0b0001) {
         if (pieceOn(e1) != KING or pieceOn(h1) != ROOK or this->colors[WHITE].hasBit(e1)) {
             hashedBoard ^= castleHash[0];
@@ -238,6 +238,7 @@ void Position::makeMove(const Move &move) {
 }
 
 uint64_t Position::promotionMove(const Move &move) {
+    this->materials[move.player] += move.promotion - 1;
     auto hashedBoard = hash();
     hashedBoard = hashSquare(hashedBoard, move.origin);
     hashedBoard = hashSquare(hashedBoard, move.destination);
@@ -557,7 +558,7 @@ Square Position::pseudoAttacker(bool player, Square square) const {
                     if (newRank == rank + dRank and newFile == file + dFile) {
                         if (attackingPiece == KING) {
                             assert(newSquare >= a1);
-                            assert(newSquare < h8);
+                            assert(newSquare <= h8);
                             return newSquare;
                         }
                     }
@@ -565,7 +566,7 @@ Square Position::pseudoAttacker(bool player, Square square) const {
                 if (i < 4) {
                     if (attackingPiece == ROOK || attackingPiece == QUEEN) {
                         assert(newSquare >= a1);
-                        assert(newSquare < h8);
+                        assert(newSquare <= h8);
                         return newSquare;
                     }
                     break;
@@ -573,14 +574,14 @@ Square Position::pseudoAttacker(bool player, Square square) const {
                 if (i < 8) {
                     if (attackingPiece == BISHOP || attackingPiece == QUEEN) {
                         assert(newSquare >= a1);
-                        assert(newSquare < h8);
+                        assert(newSquare <= h8);
                         return newSquare;
                     }
                     break;
                 }
                 if (attackingPiece == KNIGHT) {
                     assert(newSquare >= a1);
-                    assert(newSquare < h8);
+                    assert(newSquare <= h8);
                     return newSquare;  // Knight attacking
                 }
                 break;

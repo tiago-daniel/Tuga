@@ -2,8 +2,9 @@
 // Created by metta on 10/9/24.
 //
 
-#include "position.h"
+#include "search.h"
 #include "draw.h"
+
 
 
 int main() {
@@ -42,6 +43,7 @@ int main() {
                         for (int i = 0; i < playableMoves.getSize();i++) {
                             if (playableMoves.getMoves()[i].destination == clickedSquare and
                                 playableMoves.getMoves()[i].origin == selectedSquare) {
+                                std::cout << game.getCurrentPlayer() << " : " << Search::negaMax(game, 3) << std::endl;
                                 game.makeMove(playableMoves.getMoves()[i]);
                                 moves = game.allMoves(game.getCurrentPlayer());
                                 selectedSquare = static_cast<Square>(64);
@@ -65,7 +67,8 @@ int main() {
                         for (size_t i = 0; i < moveTexts.size(); ++i) {
                             if (moveTexts[i].getGlobalBounds().contains(x, y)) {
                                 // Move was clicked, handle it
-                                game.makeMove(playableMoves.getMoves()[i]);
+                                game.makeMove(moves.getMoves()[i]);
+                                std::cout << Search::negaMax(game, 0) << std::endl;
                                 moves = game.allMoves(game.getCurrentPlayer());
                                 selectedSquare = static_cast<Square>(64);
                                 changes = true;
@@ -86,7 +89,7 @@ int main() {
                 draw.drawPieces(window,game,pieceTextures,font);
 
                 // Draw the list of possible moves on the right side
-                draw.drawPossibleMoves(window, playableMoves, moveTexts, font);
+                draw.drawPossibleMoves(window, moves, moveTexts, font);
 
                 draw.drawPlayableCircles(window,playableMoves, game.getColors()[game.getCurrentPlayer()^1]);
 
