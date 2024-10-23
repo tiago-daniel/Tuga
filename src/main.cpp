@@ -8,7 +8,10 @@
 
 
 int main() {
-    auto game = Position();
+    std::string starting_position_fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+    auto game = Position(starting_position_fen);
+    int depth = 1;
+    Search::runSearch(game, depth--);
     auto draw = Draw();
     sf::Font font;
     if (!font.loadFromFile("../arial.ttf")) {
@@ -43,8 +46,8 @@ int main() {
                         for (int i = 0; i < playableMoves.getSize();i++) {
                             if (playableMoves.getMoves()[i].destination == clickedSquare and
                                 playableMoves.getMoves()[i].origin == selectedSquare) {
-                                std::cout << game.getCurrentPlayer() << " : " << Search::negaMax(game, 3) << std::endl;
                                 game.makeMove(playableMoves.getMoves()[i]);
+                                if (depth > 0) Search::runSearch(game, depth--);
                                 moves = game.allMoves(game.getCurrentPlayer());
                                 selectedSquare = static_cast<Square>(64);
                                 changes = true;
@@ -68,7 +71,6 @@ int main() {
                             if (moveTexts[i].getGlobalBounds().contains(x, y)) {
                                 // Move was clicked, handle it
                                 game.makeMove(moves.getMoves()[i]);
-                                std::cout << Search::negaMax(game, 0) << std::endl;
                                 moves = game.allMoves(game.getCurrentPlayer());
                                 selectedSquare = static_cast<Square>(64);
                                 changes = true;

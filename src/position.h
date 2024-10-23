@@ -7,7 +7,10 @@
 
 #include <cassert>
 #include <cstdint>
-#include <stack>
+#include <string>
+#include <sstream>
+#include <string>
+#include <cctype>
 
 #include "movegen.h"
 
@@ -26,12 +29,13 @@ class Position {
     int hhSize = 0;
     int draw_count = 0;
     bool current_player = WHITE;
-    Square passant = a1;
-    int can_castle = 0b1111; // Most significant bits (3 & 4) - Black can castle | Left bit (can castle to left)
-    std::stack<Piece> captured_pieces{};
+    std::vector<StackType> stack = {}; // Most significant bits (3 & 4) - Black can castle | Left bit (can castle to left)
+    int fullmove_number = 0;
     int result = 2;
 public:
     Position();
+    Position(const std::string &fen);
+    std::string to_fen() const;
     static uint_fast64_t randomU64();
     [[nodiscard]] uint64_t hash() const;
     [[nodiscard]] uint64_t hashSquare(uint64_t hash, Square square) const;
@@ -43,7 +47,7 @@ public:
     [[nodiscard]] int getDrawCount() const;
     [[nodiscard]] std::array<Bitboard, 6> getBitboards() const;
     [[nodiscard]] std::array<Bitboard, 2> getColors() const;
-    std::stack<Piece> getStack();
+    std::vector<StackType> getStack();
     void makeMove(const Move &move);
     void unmakeMove(const Move &move);
     [[nodiscard]] Square findKingSquare(bool player) const;
