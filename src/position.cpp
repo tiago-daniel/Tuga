@@ -22,9 +22,163 @@ Position::Position() {
         PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN,
         ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK,
     };
-    this->captured_pieces = {};
+    this->stack.push_back(StackType{});
     initZobrist();
 }
+
+Position::Position(const std::string &fen) {
+    // Initialize colors, materials, boards, and pieces arrays to zero or empty states
+    this->colors = {Bitboard(0), Bitboard(0)};
+    this->materials = {0, 0};
+    this->boards = {Bitboard(0), Bitboard(0), Bitboard(0), Bitboard(0), Bitboard(0), Bitboard(0)};
+    this->pieces = {
+        EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
+        EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
+        EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
+        EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
+        EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
+        EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
+        EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
+        EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY
+    };
+
+    // Split the FEN string into its components
+    std::istringstream fen_stream(fen);
+    std::string piece_placement, active_color, castling_availability, en_passant_target, halfmove_clock, fullmove_number;
+    fen_stream >> piece_placement >> active_color >> castling_availability >> en_passant_target >> halfmove_clock >> fullmove_number;
+
+    // Start parsing the piece placement section
+    int square = 56; // Start from 'a8' (rank 8, file a)
+    for (char c : piece_placement) {
+        if (c == '/') {
+            square -= 16; // Move to the next rank
+        } else if (isdigit(c)) {
+            square += c - '0'; // Skip empty squares
+        } else {
+            // Determine the piece type and color
+            Piece piece_type;
+            int color;
+            switch (c) {
+                case 'P': piece_type = PAWN;   color = WHITE; break;
+                case 'N': piece_type = KNIGHT; color = WHITE; break;
+                case 'B': piece_type = BISHOP; color = WHITE; break;
+                case 'R': piece_type = ROOK;   color = WHITE; break;
+                case 'Q': piece_type = QUEEN;  color = WHITE; break;
+                case 'K': piece_type = KING;   color = WHITE; break;
+                case 'p': piece_type = PAWN;   color = BLACK; break;
+                case 'n': piece_type = KNIGHT; color = BLACK; break;
+                case 'b': piece_type = BISHOP; color = BLACK; break;
+                case 'r': piece_type = ROOK;   color = BLACK; break;
+                case 'q': piece_type = QUEEN;  color = BLACK; break;
+                case 'k': piece_type = KING;   color = BLACK; break;
+                default:
+                    throw std::invalid_argument("Invalid FEN string: unrecognized piece type");
+            }
+
+            // Update the pieces array
+            this->pieces[square] = piece_type;
+
+            // Update the colors bitboards
+            this->colors[color].addBit(square);
+
+            // Update the piece type bitboards
+            this->boards[piece_type].addBit(square);
+
+            // Update the material counts (assuming you have predefined piece values)
+            this->materials[color] += values[piece_type];
+
+            square++;
+        }
+    }
+
+    // Additional parsing can be done here for active color, castling rights, en passant target, etc.
+    // For example, to set the side to move:
+    this->current_player = (active_color == "w") ? WHITE : BLACK;
+
+    // Handle castling rights, en passant target, halfmove clock, and fullmove number as needed
+    Square passant = noSquare;
+    if (en_passant_target.size() == 2) passant = static_cast<Square>(string_to_square(en_passant_target));
+    if (!halfmove_clock.empty()) this->draw_count = std::stoi(halfmove_clock);
+    if (!fullmove_number.empty()) this->fullmove_number = std::stoi(fullmove_number);
+    initZobrist();
+}
+
+std::string Position::to_fen() const {
+    std::string fen;
+
+    // Generate piece placement
+    for (int rank = 7; rank >= 0; --rank) {
+        int empty_squares = 0;
+        for (int file = 0; file < 8; ++file) {
+            int square = rank * 8 + file;
+            Piece piece_type = pieces[square];
+            if (piece_type == EMPTY) {
+                empty_squares++;
+            } else {
+                if (empty_squares > 0) {
+                    fen += std::to_string(empty_squares);
+                    empty_squares = 0;
+                }
+
+                char piece_char;
+                switch (piece_type) {
+                    case PAWN:   piece_char = 'P'; break;
+                    case KNIGHT: piece_char = 'N'; break;
+                    case BISHOP: piece_char = 'B'; break;
+                    case ROOK:   piece_char = 'R'; break;
+                    case QUEEN:  piece_char = 'Q'; break;
+                    case KING:   piece_char = 'K'; break;
+                    default:     piece_char = '?'; break; // Should not happen
+                }
+
+                // Determine the color
+                if (colors[BLACK].hasBit(square)) {
+                    piece_char = std::tolower(piece_char);
+                }
+                fen += piece_char;
+            }
+        }
+        if (empty_squares > 0) {
+            fen += std::to_string(empty_squares);
+        }
+        if (rank > 0) {
+            fen += '/';
+        }
+    }
+
+    // Side to move
+    fen += ' ';
+    fen += (current_player == WHITE) ? 'w' : 'b';
+
+    // Castling availability
+    fen += ' ';
+    std::string castling = "";
+    if (can_castle & 0b0100) castling += 'K'; // White kingside
+    if (can_castle & 0b1000) castling += 'Q'; // White queenside
+    if (can_castle & 0b0001) castling += 'k'; // Black kingside
+    if (can_castle & 0b0010) castling += 'q'; // Black queenside
+    if (castling.empty()) castling = "-";
+    fen += castling;
+
+    // En passant target square
+    fen += ' ';
+    if (passantStack.top() != a1) {
+        fen += squareToString(passantStack.top());
+    } else {
+        fen += '-';
+    }
+
+    // Halfmove clock
+    fen += ' ';
+    fen += std::to_string(draw_count);
+
+    // Fullmove number (Assuming you have a fullmove_number attribute)
+    fen += ' ';
+    fen += std::to_string(fullmove_number);
+
+    return fen;
+}
+
 
 uint64_t Position::randomU64() {
     constexpr int rand = 0x1333317;
@@ -89,7 +243,7 @@ std::array<Bitboard, 2> Position::getColors() const {
 }
 
 Square Position::getPassant() const {
-    return this->passant;
+    return passantStack.top();
 }
 
 int Position::getCastlingRights() const {
@@ -105,6 +259,7 @@ std::stack<Piece> Position::getStack() {
 }
 
 void Position::unmakeMove(const Move &move) {
+    this->fullmove_number = (move.player == WHITE ) ? fullmove_number : fullmove_number - 1;
     Piece capturedPiece = this->captured_pieces.top();
     this->hashHistory[hhSize] = 0;
     this->hhSize--;
@@ -117,22 +272,75 @@ void Position::unmakeMove(const Move &move) {
         if (move.origin == e1) {
             if (move.destination > move.origin) {
                 this->can_castle |= 0b1;  // Restore castling right for kingside
+                this->colors[move.player].removeBit(move.destination);
+                this->colors[move.player].removeBit(move.destination - 1);
+                this->colors[move.player].addBit(move.origin);
+                this->colors[move.player].addBit(move.destination + 1);
+                this->boards[KING].removeBit(move.destination);
+                this->boards[KING].addBit(move.origin);
+                this->boards[ROOK].removeBit(move.destination - 1);
+                this->boards[ROOK].addBit(move.destination + 1);
+                pieces[e1] = KING;
+                pieces[h1] = ROOK;
+                pieces[f1] = EMPTY;
+                pieces[g1] = EMPTY;
             } else {
-                this->can_castle &= 0b10;  // Restore castling right for queenside
+                this->can_castle |= 0b10;  // Restore castling right for queenside
+                this->colors[move.player].removeBit(move.destination);
+                this->colors[move.player].removeBit(move.destination + 1);
+                this->colors[move.player].addBit(move.origin);
+                this->colors[move.player].addBit(move.destination - 2);
+                this->boards[KING].removeBit(move.destination);
+                this->boards[KING].addBit(move.origin);
+                this->boards[ROOK].removeBit(move.destination + 1);
+                this->boards[ROOK].addBit(move.destination - 2);
+                pieces[e1] = KING;
+                pieces[a1] = ROOK;
+                pieces[b1] = EMPTY;
+                pieces[c1] = EMPTY;
+                pieces[d1] = EMPTY;
             }
         } else {
             if (move.destination > move.origin) {
                 this->can_castle |= 0b100;
+                this->colors[move.player].removeBit(move.destination);
+                this->colors[move.player].removeBit(move.destination - 1);
+                this->colors[move.player].addBit(move.origin);
+                this->colors[move.player].addBit(move.destination + 1);
+                this->boards[KING].removeBit(move.destination);
+                this->boards[KING].addBit(move.origin);
+                this->boards[ROOK].removeBit(move.destination - 1);
+                this->boards[ROOK].addBit(move.destination + 1);
+                pieces[e8] = KING;
+                pieces[h8] = ROOK;
+                pieces[f8] = EMPTY;
+                pieces[g8] = EMPTY;
             } else {
-                this->can_castle &= 0b1000;
+                this->can_castle |= 0b1000;
+                this->can_castle |= 0b10;  // Restore castling right for queenside
+                this->colors[move.player].removeBit(move.destination);
+                this->colors[move.player].removeBit(move.destination + 1);
+                this->colors[move.player].addBit(move.origin);
+                this->colors[move.player].addBit(move.destination - 2);
+                this->boards[KING].removeBit(move.destination);
+                this->boards[KING].addBit(move.origin);
+                this->boards[ROOK].removeBit(move.destination + 1);
+                this->boards[ROOK].addBit(move.destination - 2);
+                pieces[e8] = KING;
+                pieces[a8] = ROOK;
+                pieces[b8] = EMPTY;
+                pieces[c8] = EMPTY;
+                pieces[d8] = EMPTY;
             }
         }
     }
 
     // Restore color bitboards and piece position
-    this->colors[move.player].removeBit(move.destination);
-    this->colors[move.player].addBit(move.origin);
-    this->boards[pieceOn(move.destination)].removeBit(move.destination);
+    else {
+        this->colors[move.player].removeBit(move.destination);
+        this->colors[move.player].addBit(move.origin);
+        this->boards[pieceOn(move.destination)].removeBit(move.destination);
+    }
 
     // If it's not a promotion, restore the piece's bitboard
     if (move.type != PROMOTION) {
@@ -160,15 +368,22 @@ void Position::unmakeMove(const Move &move) {
     }
 
     // Restore the piece's original position and flip the player
-    this->pieces[move.origin] = pieceOn(move.destination);
+    if (move.type != CASTLE) {
+        this->pieces[move.origin] = pieceOn(move.destination);
+        this->pieces[move.destination] = capturedPiece;
+    }
     this->current_player ^= 1;
     this->endGame(2);
 }
 
 void Position::makeMove(const Move &move) {
-    auto captured = pieceOn(move.destination);
+    Piece captured;
+    this->fullmove_number = (move.player == WHITE ) ? fullmove_number : fullmove_number + 1;
+    if (move.type == CASTLE) {captured = EMPTY;}
+    else if (move.type == EN_PASSANT) {captured = PAWN;}
+    else {captured = pieceOn(move.destination);}
+    captured_pieces.push(captured);
     uint64_t hashedBoard;
-    this->captured_pieces.push(captured);
     if (captured == EMPTY) {
         this->draw_count++;
     }
@@ -218,6 +433,7 @@ void Position::makeMove(const Move &move) {
         }
     }
     this->current_player ^= 1;
+
     hashedBoard ^= blackHash;
     newHash(hashedBoard);
     int count = 0;
@@ -320,10 +536,10 @@ Piece Position::pieceOn(const Square square) const {
 uint64_t Position::passantMove(const Move &move) {
     auto hashedBoard = this->currentHash;
     hashedBoard = hashSquare(hashedBoard, move.origin);
-    hashedBoard = hashSquare(hashedBoard, this->passant);
+    hashedBoard = hashSquare(hashedBoard, passantStack.top());
     // Clear the en passant bit on the board
     for (auto &board : this->boards) {
-        board.removeBit(this->passant);  // Clear the en passant square
+        board.removeBit(passantStack.top());  // Clear the en passant square
         if (board.getBitboard() & Bit(move.origin)) {
             board.removeBit(move.origin);  // Remove the moving piece from origin
             board.addBit(move.destination);  // Add the moving piece to the destination
@@ -341,7 +557,7 @@ uint64_t Position::passantMove(const Move &move) {
     // Update the piece positions
     pieces[move.destination] = pieces[move.origin];
     pieces[move.origin] = EMPTY;
-    this->passant = a1;  // Clear en passant target
+    this->passantStack.push(a1);
     this->draw_count = 0;
 
     // Update color bitboards
@@ -368,11 +584,11 @@ uint64_t Position::normalMove(const Move &move) {
     pieces[move.destination] = pieces[move.origin];  // Copy piece from origin to destination
     pieces[move.origin] = EMPTY;  // Set origin square as empty
 
-    this->passant = a1;
     if (this->boards[PAWN].hasBit(move.destination) and
     (move.destination == move.origin + 16 || move.destination == move.origin - 16)) {
-        this->passant = move.destination; // Set en passant square
+        passantStack.push(move.destination); // Set en passant square
     }
+    else passantStack.push(a1);
     colors[current_player].removeBit(move.origin);
     colors[current_player ^ 1].removeBit(move.destination);
     colors[current_player].addBit(move.destination);
@@ -456,7 +672,7 @@ MoveList Position::pseudoLegal(bool player) const {
             if (allies.getBitboard() & Bit(n)) {
                 switch (this->pieces[n]) {
                     case PAWN:
-                        MoveGen::pawnMove(moves, static_cast<Square>(n), player, allies, enemies, passant);
+                        MoveGen::pawnMove(moves, static_cast<Square>(n), player, allies, enemies, passantStack.top());
                     break;
                     case KNIGHT:
                         MoveGen::knightMove(moves, player, static_cast<Square>(n), allies);
@@ -488,6 +704,9 @@ MoveList Position::allMoves(bool player) {
     auto result = MoveList();
     for (int i = 0; i < moves.getSize(); i++) {;
         if (isLegal(moves.getMoves()[i])) {
+            // makeMove(moves.getMoves()[i]);
+            // std::cout << to_fen() << std::endl;
+            // unmakeMove(moves.getMoves()[i]);
             result.push(moves.getMoves()[i]);
         }
     }
@@ -510,7 +729,6 @@ Square Position::findKingSquare(bool player) const {
             break;
         }
     }
-    assert(kingSquare != noSquare);
     return kingSquare;
 }
 

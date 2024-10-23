@@ -7,6 +7,9 @@
 
 #include <iostream>
 #include <array>
+#include <string>
+#include <stdexcept>
+#include <cctype>
 
     inline unsigned int long long Bit(int n) {
         return 1ULL << n;
@@ -82,6 +85,12 @@ struct Move {
     };
 };
 
+struct StackType {
+    Square passant = noSquare;
+    int castling_rights = 0b1111;
+    Piece captured = EMPTY;
+};
+
 inline std::string squareToString(Square square) {
     char file = static_cast<char>('a' + (square % 8));
     char rank = static_cast<char>('1' + (square / 8));
@@ -108,7 +117,35 @@ inline std::string pieceToString(Piece piece) {
     }
 }
 
-inline std::array values {1, 3, 3, 5, 9, 100, 0};
+inline std::array values{1, 3, 3, 5, 9, 100, 0};
+
+inline int string_to_square(const std::string& square_str) {
+    if (square_str.length() != 2) {
+        throw std::invalid_argument("Invalid square string: must be two characters long.");
+    }
+
+    // Convert file character to lowercase to handle uppercase inputs
+    char file_char = std::tolower(square_str[0]);
+    char rank_char = square_str[1];
+
+    // Validate file character ('a' to 'h')
+    if (file_char < 'a' || file_char > 'h') {
+        throw std::invalid_argument("Invalid file character in square string.");
+    }
+    int file = file_char - 'a';
+
+    // Validate rank character ('1' to '8')
+    if (rank_char < '1' || rank_char > '8') {
+        throw std::invalid_argument("Invalid rank character in square string.");
+    }
+    int rank = rank_char - '1';
+
+    // Calculate square index (0 to 63)
+    int square = rank * 8 + file;
+
+    return square;
+}
+
 
 inline std::ostream& operator<<(std::ostream& os, const Square square) {
     os << squareToString(square);
@@ -117,11 +154,25 @@ inline std::ostream& operator<<(std::ostream& os, const Square square) {
 
 inline std::ostream& operator<<(std::ostream& os, const Move& i) {
     if (i.promotion == PAWN) {
-        os << "(" << i.origin << ", " << i.destination << ", " << i.type << ", " << i.player << ")";
+        os << i.origin << i.destination;
     }
     else {
-        os << "(" << i.origin << ", " << i.destination << ", " << i.type << ", "
-        << i.player << ", " << i.promotion << ")";
+        switch (i.promotion) {
+            case KNIGHT:
+                os << i.origin << i.destination << "n";
+                break;
+            case BISHOP:
+                os << i.origin << i.destination << "b";
+                break;
+            case ROOK:
+                os << i.origin << i.destination << "r";
+                break;
+            case QUEEN:
+                os << i.origin << i.destination << "q";
+                break;
+            default:
+                break;
+        }
     }
     return os;
 };
