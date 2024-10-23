@@ -108,7 +108,7 @@ inline std::string pieceToString(Piece piece) {
     }
 }
 
-inline std::array values {1, 3, 3, 5, 9, 0};
+inline std::array values {1, 3, 3, 5, 9, 100, 0};
 
 inline std::ostream& operator<<(std::ostream& os, const Square square) {
     os << squareToString(square);
