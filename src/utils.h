@@ -81,7 +81,7 @@ struct Move {
     bool operator==(const Move& other) const {
         return (this->origin == other.origin) &&
                (this->destination == other.destination) &&
-               (this->type == other.type);
+               (this->promotion == other.promotion);
     };
 };
 
@@ -119,7 +119,7 @@ inline std::string pieceToString(Piece piece) {
 
 inline std::array values{1, 3, 3, 5, 9, 100, 0};
 
-inline int string_to_square(const std::string& square_str) {
+inline Square string_to_square(const std::string& square_str) {
     if (square_str.length() != 2) {
         throw std::invalid_argument("Invalid square string: must be two characters long.");
     }
@@ -144,9 +144,23 @@ inline int string_to_square(const std::string& square_str) {
     // Calculate square index (0 to 63)
     int square = rank * 8 + file;
 
-    return square;
+    return static_cast<Square>(square);
 }
 
+inline Piece stringToPiece(const char& pieceStr) {
+    switch (pieceStr) {
+        case 'n':
+            return KNIGHT;
+        case 'b':
+            return BISHOP;
+        case 'r':
+            return ROOK;
+        case 'q':
+            return QUEEN;
+        default:
+            return PAWN;
+    }
+}
 
 inline std::ostream& operator<<(std::ostream& os, const Square square) {
     os << squareToString(square);

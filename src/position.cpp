@@ -319,7 +319,9 @@ void Position::unmakeMove(const Move &move) {
     if (move.type != PROMOTION) {
         this->boards[pieceOn(move.destination)].addBit(move.origin);
     } else {
-        this->boards[PAWN].addBit(move.origin);  // Handle promotion separately
+        this->boards[PAWN].addBit(move.origin);  // Handle promotion
+        this->pieces[move.origin] = PAWN;
+        this->pieces[move.destination] = capturedPiece;
     }
 
     // Handle en passant captures
@@ -341,7 +343,7 @@ void Position::unmakeMove(const Move &move) {
     }
 
     // Restore the piece's original position and flip the player
-    if (move.type != CASTLE) {
+    if (move.type != CASTLE and move.type != PROMOTION) {
         this->pieces[move.origin] = pieceOn(move.destination);
         this->pieces[move.destination] = capturedPiece;
     }
