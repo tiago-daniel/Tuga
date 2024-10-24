@@ -241,6 +241,9 @@ void Position::initZobrist() {
     for (auto & i : this->castleHash) {
         i = randomU64();
     }
+    for (auto & i : this->passantHash) {
+        i = randomU64();
+    }
     newHash(hash());
 }
 
@@ -430,6 +433,7 @@ void Position::makeMove(const Move &move) {
     this->current_player ^= 1;
 
     hashedBoard ^= blackHash;
+    hashedBoard ^= passantHash[passant % 8];
     newHash(hashedBoard);
     int count = 0;
     for (int i = 0; i < hhSize; i++) {
