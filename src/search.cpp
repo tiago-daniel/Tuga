@@ -7,7 +7,7 @@
 
 inline int global = 0;
 
-int Search::negaMax(Position pos, int depth) {
+int Search::negaMax(Position& pos, int depth) {
     int count = 0;
     if (depth == 0) return Evaluation::evaluate(pos);
 
@@ -24,7 +24,28 @@ int Search::negaMax(Position pos, int depth) {
     return max;
 }
 
-int Search::negaMaxTest(Position pos, int depth, std::vector<int>& counts) {
+Move Search::rootNegaMax(Position& pos, int depth) {
+    Move bestMove;
+    int count = 0;
+
+    int max = - 1000;
+
+    for (int i = 0 ;i <  pos.allMoves(pos.getCurrentPlayer()).getSize(); i++) {
+        count++;
+        auto move = pos.allMoves(pos.getCurrentPlayer()).getMoves()[i];
+        pos.makeMove(move);
+        int score = -negaMax(pos, depth - 1);
+        pos.unmakeMove(move);
+        if (score > max) {
+            max = score;
+            bestMove = pos.allMoves((pos.getCurrentPlayer())).getMoves()[i];
+        }
+    }
+    assert(bestMove != Move());
+    return bestMove;
+}
+
+int Search::negaMaxTest(Position& pos, int depth, std::vector<int>& counts) {
     if (depth == 0) return Evaluation::evaluate(pos);
 
     int max = -1000;

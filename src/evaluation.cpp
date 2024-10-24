@@ -6,6 +6,9 @@
 
 
 int Evaluation::evaluate(const Position& game) {
-    if (game.getCurrentPlayer() == WHITE) return game.getMaterials(WHITE) - game.getMaterials(BLACK);
-    return game.getMaterials(BLACK) - game.getMaterials(WHITE);
+    bool color = game.getCurrentPlayer();
+    if (game.getResult() != 2) {
+        return game.getResult() * 1000 - 1;
+    }
+    return game.getMaterials(color) - game.getMaterials(color^1);
 }
