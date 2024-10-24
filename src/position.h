@@ -65,10 +65,10 @@ public:
     [[nodiscard]] MoveList pseudoLegal(bool player) const;
     MoveList allMoves(bool player);
     static std::array<Square, 8> isBetween(Square square1, Square square2);
+    bool isLegal(const Move &move);
     [[nodiscard]] Square pseudoAttacker(bool player, Square square) const;
     [[nodiscard]] bool isPseudoAttacked(bool player, Square square) const;
     static bool isSquareBetween(Square square1,Square square2,Square square3);
-    bool isLegal(const Move &move) const;
     static Direction getDirection(Square sq1, Square sq2);
     [[nodiscard]] Direction directionPinned(Square square) const;
     [[nodiscard]] bool isPinned(Square square, bool color, int horizontalInc, int verticalInc) const;
