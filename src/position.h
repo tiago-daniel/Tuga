@@ -24,6 +24,7 @@ class Position {
     uint64_t transpositionTable[64][12]{};
     uint64_t blackHash = 0;
     uint64_t castleHash[4]{};
+    uint64_t passantHash[8]{};
     uint64_t currentHash = 0;
     std::array<uint64_t,1024> hashHistory{};
     int hhSize = 0;
