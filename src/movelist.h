@@ -19,7 +19,7 @@ public:
     [[nodiscard]] int getSize() const;
     [[nodiscard]] bool isEmpty() const;
     void remove(Move move);
-    [[nodiscard]] std::array<Move, 256> getMoves() const;
+    [[nodiscard]] std::array<Move, 256>& getMoves();
     void clear();
     [[nodiscard]] bool has(Move move) const;
 };

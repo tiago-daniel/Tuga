@@ -31,7 +31,7 @@ void MoveList::remove(Move move){
     this->size--;
 };
 
-std::array<Move, 256> MoveList::getMoves() const {
+std::array<Move, 256>& MoveList::getMoves() {
     return this->moves;
 };
 
