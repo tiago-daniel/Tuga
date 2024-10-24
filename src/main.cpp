@@ -5,12 +5,12 @@
 #include "search.h"
 // #include "draw.h"
 #include <chrono>
+#include <thread>
 
 
 int main() {
-    std::string fen = "8/2P1r3/8/K2p4/1R3p1k/4P3/6P1/8 w - - 1 4";
+    std::string fen = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1";
     auto game = Position(fen);
-    // Search::runSearch(game, depth);
 
     // Example possible moves (you can modify this based on your game logic)
     // Main loop
@@ -22,6 +22,7 @@ int main() {
 
         // Output the time in milliseconds
         std::cout << "Elapsed time: " << duration.count() << " seconds" << std::endl;
+        /*
         std::string input;
         std::cin >> input;
         std::cout << std::endl;
@@ -30,6 +31,9 @@ int main() {
         Piece piece;
         if (input.length() == 5) piece = stringToPiece(input[4]);
         game.makeMove(game.allMoves(game.getCurrentPlayer()).findMove(origin, destination, piece));
+        */
+        game.endGame(0);
     }
+    std::this_thread::sleep_for(std::chrono::seconds(5));
     return game.getResult();
 }

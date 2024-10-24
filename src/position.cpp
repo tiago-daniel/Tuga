@@ -338,8 +338,9 @@ void Position::unmakeMove(const Move &move) {
     // Update the draw count based on captured pieces
     this->draw_count = 0;
     size_t i = stack.size() - 1;
-    while (stack[i--].captured == EMPTY) {
+    while (stack[i].captured == EMPTY) {
         draw_count++;
+        if (i-- == 0) break;
     }
 
     // Restore the piece's original position and flip the player
