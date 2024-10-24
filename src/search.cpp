@@ -21,7 +21,6 @@ int Search::negaMax(Position pos, int depth) {
         pos.unmakeMove(move);
         if (score > max) max = score;
     }
-    std::cout << "Depth " << 4 - depth << " : " << count << std::endl;
     return max;
 }
 
@@ -29,7 +28,7 @@ int Search::negaMaxTest(Position pos, int depth, std::vector<int>& counts) {
     if (depth == 0) return Evaluation::evaluate(pos);
 
     int max = -1000;
-    int currentDepth = counts.size() - depth; // Depth level we're currently in
+    int currentDepth = counts.size() - depth;
     int count = 0; // Track moves explored at this depth
 
     for (int i = 0; i < pos.allMoves(pos.getCurrentPlayer()).getSize(); i++) {
@@ -38,13 +37,14 @@ int Search::negaMaxTest(Position pos, int depth, std::vector<int>& counts) {
         }
         count+=1;
         auto move = pos.allMoves(pos.getCurrentPlayer()).getMoves()[i];
-        // pos.makeMove(move);
+        pos.makeMove(move);
         int score = -negaMaxTest(pos, depth - 1, counts); // Recursive call
-        // pos.unmakeMove(move);
+        pos.unmakeMove(move);
         if (depth == counts.size()) {
             if (counts[counts.size()-1] == 0) std::cout <<  1 << std::endl;
+            else if (counts[counts.size()-1] - global < 0) std::cout <<  counts[counts.size()-1] << std::endl;
             else std::cout << counts[counts.size()-1] - global << std::endl;
-            global += counts[counts.size()-1];
+            global = counts[counts.size()-1];
         }
         if (score > max) max = score;
     }
