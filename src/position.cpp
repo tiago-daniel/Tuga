@@ -281,8 +281,8 @@ int Position::getDrawCount() const {
     return this->draw_count;
 }
 
-std::vector<StackType> Position::getStack() {
-    return this->stack;
+std::vector<StackType>* Position::getStack() {
+    return &this->stack;
 }
 
 void Position::unmakeMove(const Move &move) {
@@ -353,9 +353,8 @@ void Position::unmakeMove(const Move &move) {
 
     // Update the draw count based on captured pieces
     this->draw_count = 0;
-    auto stackCopy = stack;
-    while (!stackCopy.empty() && stackCopy.back().captured == EMPTY) {
-        stackCopy.pop_back();
+    size_t i = stack.size() - 1;
+    while (stack[i--].captured == EMPTY) {
         draw_count++;
     }
 

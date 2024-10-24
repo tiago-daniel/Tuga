@@ -48,7 +48,7 @@ public:
     [[nodiscard]] int getDrawCount() const;
     [[nodiscard]] std::array<Bitboard, 6> getBitboards() const;
     [[nodiscard]] std::array<Bitboard, 2> getColors() const;
-    std::vector<StackType> getStack();
+    std::vector<StackType>* getStack();
     void makeMove(const Move &move);
     void unmakeMove(const Move &move);
     [[nodiscard]] Square findKingSquare(bool player) const;
