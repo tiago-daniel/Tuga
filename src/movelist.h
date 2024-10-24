@@ -22,6 +22,7 @@ public:
     [[nodiscard]] std::array<Move, 256>& getMoves();
     void clear();
     [[nodiscard]] bool has(Move move) const;
+    Move findMove(Square origin, Square destination, Piece promotion = PAWN) const;
 };
 
 

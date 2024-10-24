@@ -49,3 +49,14 @@ bool MoveList::has(Move move) const {
     }
     return false;
 };
+
+Move MoveList::findMove(Square origin, Square destination, Piece promotion) const {
+    for (int i = 0; i < this->size; i++) {
+        if (this->moves[i].origin == origin
+            and this->moves[i].destination == destination
+            and this->moves[i].promotion == promotion) {
+            return this->moves[i];
+        }
+    }
+    return {};
+}

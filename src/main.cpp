@@ -8,7 +8,7 @@
 
 
 int main() {
-    std::string fen = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1";
+    std::string fen = "8/2P1r3/8/K2p4/1R3p1k/4P3/6P1/8 w - - 1 4";
     auto game = Position(fen);
     // Search::runSearch(game, depth);
 
@@ -22,8 +22,14 @@ int main() {
 
         // Output the time in milliseconds
         std::cout << "Elapsed time: " << duration.count() << " seconds" << std::endl;
-        std::string i;
-        std::cin >> i;
+        std::string input;
+        std::cin >> input;
+        std::cout << std::endl;
+        Square origin = string_to_square(input.substr(0,2));
+        Square destination = string_to_square(input.substr(2,2));
+        Piece piece;
+        if (input.length() == 5) piece = stringToPiece(input[4]);
+        game.makeMove(game.allMoves(game.getCurrentPlayer()).findMove(origin, destination, piece));
     }
     return game.getResult();
 }
