@@ -13,6 +13,7 @@ int Search::negaMax(Position& pos, int depth) {
 
     int max = - 1000;
 
+    auto moves = pos.allMoves(pos.getCurrentPlayer());
     for (int i = 0 ;i <  pos.allMoves(pos.getCurrentPlayer()).getSize(); i++) {
         count++;
         auto move = pos.allMoves(pos.getCurrentPlayer()).getMoves()[i];

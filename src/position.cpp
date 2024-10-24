@@ -6,31 +6,13 @@
 
 #include <random>
 
-Position::Position() {
-    this->colors = {Bitboard(0xFFFF),Bitboard(0xFFFF000000000000)};
-    this->materials = {39, 39};
-    this->boards = {Bitboard(0x00FF00000000FF00),Bitboard(0x4200000000000042)
-        ,Bitboard(0x2400000000000024),Bitboard(0x8100000000000081),
-        Bitboard(0x0800000000000008),Bitboard(0x1000000000000010)};
-    this->pieces = {
-        ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK,
-        PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN,
-        EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
-        EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
-        EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
-        EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
-        PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN, PAWN,
-        ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK,
-    };
-    this->stack.push_back(StackType{});
-    initZobrist();
-}
-
 Position::Position(const std::string &fen) {
     // Initialize colors, materials, boards, and pieces arrays to zero or empty states
-    this->colors = {Bitboard(0), Bitboard(0)};
+    std::array actualColors = {Bitboard(0), Bitboard(0)};
+    this->colors = actualColors;
     this->materials = {0, 0};
-    this->boards = {Bitboard(0), Bitboard(0), Bitboard(0), Bitboard(0), Bitboard(0), Bitboard(0)};
+    std::array actualBoards = {Bitboard(0), Bitboard(0), Bitboard(0), Bitboard(0), Bitboard(0), Bitboard(0)};
+    this->boards = actualBoards;
     this->pieces = {
         EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
         EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
@@ -419,7 +401,7 @@ void Position::makeMove(const Move &move) {
         }
     }
     if (castling_rights & 0b1000){
-        if (pieceOn(e8) != KING or pieceOn(a8) != ROOK or colors[BLACK].hasBit(a8)) {
+        if (pieceOn(e8) != KING or pieceOn(a8) != ROOK or colors[WHITE].hasBit(a8)) {
             hashedBoard ^= castleHash[3];
             castling_rights &= 0b0111;
         }
@@ -929,10 +911,11 @@ bool Position::isLegal(const Move &move) {
     }
 
     // Check if the king is in double check
+    /*
     if (isKingInDoubleCheck(move.player)) {
         return false;
     }
-
+    */
     // Check if the piece is pinned and restrict its movement to the pin direction
     auto dir = directionPinned(move.origin);
     if (dir != NO_DIRECTION) {

@@ -34,9 +34,8 @@ class Position {
     int fullmove_number = 0;
     int result = 2;
 public:
-    Position();
-    Position(const std::string &fen);
-    std::string to_fen() const;
+    explicit Position(const std::string &fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    [[nodiscard]] std::string to_fen() const;
     static uint_fast64_t randomU64();
     [[nodiscard]] uint64_t hash() const;
     [[nodiscard]] uint64_t hashSquare(uint64_t hash, Square square) const;

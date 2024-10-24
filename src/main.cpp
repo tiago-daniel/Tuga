@@ -14,12 +14,16 @@ int main() {
 
     // Example possible moves (you can modify this based on your game logic)
     // Main loop
-    auto start = std::chrono::high_resolution_clock::now();
-    Search::runSearch(game,5);
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+    while (game.getResult() == 2) {
+        auto start = std::chrono::high_resolution_clock::now();
+        Search::runSearch(game,5);
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
 
-    // Output the time in milliseconds
-    std::cout << "Elapsed time: " << duration.count() << " seconds" << std::endl;
+        // Output the time in milliseconds
+        std::cout << "Elapsed time: " << duration.count() << " seconds" << std::endl;
+        std::string i;
+        std::cin >> i;
+    }
     return game.getResult();
 }
