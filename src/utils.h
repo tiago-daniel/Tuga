@@ -134,6 +134,7 @@ inline int string_to_square(const std::string& square_str) {
     }
     int file = file_char - 'a';
 
+
     // Validate rank character ('1' to '8')
     if (rank_char < '1' || rank_char > '8') {
         throw std::invalid_argument("Invalid rank character in square string.");
