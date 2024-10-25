@@ -18,10 +18,10 @@ int main() {
         auto start = std::chrono::high_resolution_clock::now();
         Search::runSearch(game,5);
         auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
         // Output the time in milliseconds
-        std::cout << "Elapsed time: " << duration.count() << " seconds" << std::endl;
+        std::cout << "Elapsed time: " << duration.count() << " milliseconds" << std::endl;
         /*
         std::string input;
         std::cin >> input;
