@@ -12,8 +12,9 @@
 
 class Search {
 public:
-    static int negaMax(Position &pos, int depth);
+    static double negaMax(Position &pos, int depth);
     static Move rootNegaMax(Position &pos, int depth);
+    static U64 preft(Position &pos, int depth);
     static int negaMaxTest(Position &pos, int depth, std::vector<int> &counts);
     static void runSearch(Position pos, int depth);
 };

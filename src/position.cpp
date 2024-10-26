@@ -158,7 +158,7 @@ std::string Position::to_fen() const {
 
     // Castling availability
     fen += ' ';
-    std::string castling = "";
+    std::string castling;
     if (stack.back().castling_rights & 0b0100) castling += 'K'; // White kingside
     if (stack.back().castling_rights & 0b1000) castling += 'Q'; // White queenside
     if (stack.back().castling_rights & 0b0001) castling += 'k'; // Black kingside
@@ -726,8 +726,6 @@ Square Position::pseudoAttacker(bool player, Square square) const {
         int newRank = rank;
         int newFile = file;
 
-        // Handle sliding pieces (rook, bishop, queen)
-        bool isSlidingPiece = (i < 8);  // First 8 are sliding directions
 
         do {
             newRank += dRank;
@@ -738,7 +736,7 @@ Square Position::pseudoAttacker(bool player, Square square) const {
                 break;
             }
 
-            auto newSquare = static_cast<Square>(newRank * 8 + newFile);
+            auto newSquare = squareIndex(newRank, newFile);
             // If we encounter a friendly piece, stop
             if (colors[player].hasBit(newSquare) and pieceOn(newSquare) != KING) {
                 break;
@@ -780,7 +778,7 @@ Square Position::pseudoAttacker(bool player, Square square) const {
                 break;
             }
 
-        } while (isSlidingPiece);  // Continue sliding only for rooks, bishops, queens
+        } while (i < 8);  // Continue sliding only for rooks, bishops, queens
     }
 
     // Check for pawn attacks
@@ -831,8 +829,12 @@ bool Position::isKingInDoubleCheck(bool player) const {
     return false;
 }
 bool Position::insufficientMaterial() const {
-    if (this->boards[PAWN].getBitboard() != 0) {return false;}
-    if (materials[WHITE] < 4 and materials[BLACK] < 4) {return true;}
+    if (this->boards[PAWN].getBitboard() != 0) {
+        return false;
+    }
+    if (materials[WHITE] < 4 and materials[BLACK] < 4) {
+        return true;
+    }
     return false;
 }
 
@@ -913,12 +915,6 @@ bool Position::isLegal(const Move &move) {
         return true;
     }
 
-    // Check if the king is in double check
-    /*
-    if (isKingInDoubleCheck(move.player)) {
-        return false;
-    }
-    */
     // Check if the piece is pinned and restrict its movement to the pin direction
     auto dir = directionPinned(move.origin);
     if (dir != NO_DIRECTION) {

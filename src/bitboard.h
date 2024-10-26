@@ -9,16 +9,16 @@
 #include "utils.h"
 
 class Bitboard {
-    unsigned int long long positions = 0;
+    U64 positions = 0;
 public:
     Bitboard();
-    explicit Bitboard(unsigned int long long positions);
-    [[nodiscard]] unsigned int long long getBitboard() const;
+    explicit Bitboard(U64 positions);
+    [[nodiscard]] U64 getBitboard() const;
     void removeBit(int bit);
     void addBit(int bit);
     void print() const;
-    unsigned int long long countBits(Bitboard mask) const;
-    void setBitboard(unsigned int long long positions);
+    [[nodiscard]] U64 countBits(Bitboard mask) const;
+    void setBitboard(U64 positions);
     [[nodiscard]] bool hasBit(int bit) const;
 };
 
