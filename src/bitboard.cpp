@@ -6,19 +6,19 @@
 
 Bitboard::Bitboard() = default;
 
-Bitboard::Bitboard(const unsigned int long long positions=0) {
+Bitboard::Bitboard(const U64 positions=0) {
     this->positions = positions;
 }
 
-void Bitboard::setBitboard(const unsigned int long long positions) {
+void Bitboard::setBitboard(const U64 positions) {
     this->positions = positions;
 }
 
 bool Bitboard::hasBit(int bit) const {
-    return positions & Bit(bit);
+    return positions & (1ULL << bit);
 }
 
-unsigned int long long Bitboard::getBitboard() const {
+U64 Bitboard::getBitboard() const {
     return this->positions;
 }
 
@@ -40,6 +40,6 @@ void Bitboard::print() const {
     }
 }
 
-unsigned int long long Bitboard::countBits(Bitboard mask) const {
+U64 Bitboard::countBits(Bitboard mask) const {
     return __builtin_popcountll(this->positions & mask.getBitboard());  // Counts bits in the bitboard
 }

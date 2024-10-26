@@ -9,19 +9,20 @@
 
 
 int main() {
-    std::string fen = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1";
+    std::string fen = "8/2p5/3p4/KP4kr/5R2/8/4P1P1/8 w - - 1 2";
     auto game = Position(fen);
 
     // Example possible moves (you can modify this based on your game logic)
     // Main loop
     while (game.getResult() == 2) {
         auto start = std::chrono::high_resolution_clock::now();
-        Search::runSearch(game,5);
+        U64 nodes = Search::preft(game, 5);
         auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-
-        // Output the time in milliseconds
-        std::cout << "Elapsed time: " << duration.count() << " milliseconds" << std::endl;
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        std::cout << "Elapsed time: " << duration.count() / 1000 << " milliseconds" << std::endl;
+        std::cout << "Number of nodes : " << nodes << std::endl;
+        std::cout << "Elapsed time: " << duration.count() / 1000 << " milliseconds" << std::endl;
+        std::cout << "Number of nodes per seconds: " <<  nodes *1000000/ duration.count()<< std::endl;
         /*
         std::string input;
         std::cin >> input;

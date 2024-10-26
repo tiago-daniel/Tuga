@@ -9,7 +9,7 @@
 
 class Evaluation{
 public:
-    static int evaluate(const Position& game);
+    static double evaluate(const Position& game);
 };
 
 #endif //EVALUATION_H

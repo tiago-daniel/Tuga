@@ -7,18 +7,18 @@
 
 inline int global = 0;
 
-int Search::negaMax(Position& pos, int depth) {
+double Search::negaMax(Position& pos, int depth) {
     int count = 0;
     if (depth == 0) return Evaluation::evaluate(pos);
 
-    int max = - 1000;
+    double max = - 10000;
 
     auto moves = pos.allMoves(pos.getCurrentPlayer());
-    for (int i = 0 ;i <  pos.allMoves(pos.getCurrentPlayer()).getSize(); i++) {
+    for (int i = 0 ;i <  moves.getSize(); i++) {
         count++;
-        auto move = pos.allMoves(pos.getCurrentPlayer()).getMoves()[i];
+        auto move = moves.getMoves()[i];
         pos.makeMove(move);
-        int score = -negaMax(pos, depth - 1);
+        double score = -negaMax(pos, depth - 1);
         pos.unmakeMove(move);
         if (score > max) max = score;
     }
@@ -29,13 +29,13 @@ Move Search::rootNegaMax(Position& pos, int depth) {
     Move bestMove;
     int count = 0;
 
-    int max = - 1000;
+    double max = - 10000;
 
     for (int i = 0 ;i <  pos.allMoves(pos.getCurrentPlayer()).getSize(); i++) {
         count++;
         auto move = pos.allMoves(pos.getCurrentPlayer()).getMoves()[i];
         pos.makeMove(move);
-        int score = -negaMax(pos, depth - 1);
+        double score = -negaMax(pos, depth - 1);
         pos.unmakeMove(move);
         if (score > max) {
             max = score;
@@ -44,6 +44,19 @@ Move Search::rootNegaMax(Position& pos, int depth) {
     }
     assert(bestMove != Move());
     return bestMove;
+}
+
+U64 Search::preft(Position& pos, int depth) {
+    int i;
+    U64 nodes = 0;
+    auto moves = pos.allMoves(pos.getCurrentPlayer());
+    if (depth == 0) return 1ULL;
+    for (i = 0 ;i <  moves.getSize(); i++) {
+        pos.makeMove(moves.getMoves()[i]);
+        nodes += preft(pos, depth - 1);
+        pos.unmakeMove(moves.getMoves()[i]);
+    }
+    return nodes;
 }
 
 int Search::negaMaxTest(Position& pos, int depth, std::vector<int>& counts) {

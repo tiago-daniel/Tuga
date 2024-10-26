@@ -10,10 +10,14 @@
 #include <string>
 #include <stdexcept>
 #include <cctype>
+#include <cstdint>
 
-    inline unsigned int long long Bit(int n) {
+typedef uint64_t U64;
+
+    inline U64 Bit(int n) {
         return 1ULL << n;
     }
+
     enum Square {
         a1,  b1,  c1,  d1,  e1,  f1,  g1,  h1,
         a2,  b2,  c2,  d2,  e2,  f2,  g2,  h2,
@@ -25,6 +29,9 @@
         a8,  b8,  c8,  d8,  e8,  f8,  g8,  h8,
         noSquare = -1
     };
+inline Square squareIndex(int rank, int file) {
+    return static_cast<Square>((rank << 3) | file); // Equivalent to rank * 8 + file
+}
 
     enum Direction {
         HORIZONTAL,
