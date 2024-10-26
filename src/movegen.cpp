@@ -346,6 +346,35 @@ void MoveGen::kingMove(MoveList &moves, bool player, Square square, Bitboard all
     }
 }
 
+U64 MoveGen::rookMask(Square s) {
+    U64 mask = 0ULL;
+
+    int rank = s / 8;
+    int file = s % 8;
+
+    // Up (North)
+    for (int r = rank + 1; r <= 6; ++r) {
+        mask |= (1ULL << (squareIndex(rank, file)));
+    }
+
+    // Down (South)
+    for (int r = rank - 1; r >= 1; --r) {
+        mask |= (1ULL << (squareIndex(rank, file)));
+    }
+
+    // Right (East)
+    for (int f = file + 1; f <= 6; ++f) {
+        mask |= (1ULL << (squareIndex(rank, file)));
+    }
+
+    // Left (West)
+    for (int f = file - 1; f >= 1; --f) {
+        mask |= (1ULL << (squareIndex(rank, file)));
+    }
+
+    return mask;
+}
+
 
 void MoveGen::castleMove(MoveList &moves, bool player, Square square, int castlingRights, Bitboard allies, Bitboard enemies) {
     auto board = Bitboard(allies.getBitboard() | enemies.getBitboard());

@@ -30,6 +30,7 @@ public:
     static void queenMove(MoveList &moves, bool player, Square square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
 
     static void kingMove(MoveList &moves, bool player, Square square, Bitboard allies = Bitboard());
+    static U64 rookMask(Square s);
 
     static void castleMove(MoveList &moves, bool player, Square square,int castlingRights, Bitboard allies = Bitboard(),Bitboard enemies = Bitboard());
 
