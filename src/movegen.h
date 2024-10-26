@@ -12,7 +12,12 @@
 
 
 class MoveGen {
+    static U64 knightAttacks[64];
+    static U64 kingAttacks[64];
 public:
+    static void initKnightAttacks();
+    static void initKingAttacks();
+    static void initAllAttackTables();
 
     static void pawnMove(MoveList &moves, Square square, bool color, Bitboard allies, Bitboard enemies, Square passant);
 

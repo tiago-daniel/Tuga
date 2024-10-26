@@ -4,6 +4,67 @@
 
 #include "movegen.h"
 
+U64 MoveGen::knightAttacks[64];
+U64 MoveGen::kingAttacks[64];
+
+void MoveGen::initKnightAttacks() {
+    constexpr int knightMoves[8][2] = {
+        {-2, -1}, {-2, 1}, {-1, -2}, {-1, 2},
+        {1, -2},  {1, 2},  {2, -1},  {2, 1}
+    };
+
+    for (int square = 0; square < 64; ++square) {
+        U64 attacks = 0ULL;
+        int rank = getRank(square);
+        int file = getFile(square);
+
+        for (const auto& move : knightMoves) {
+            int newRank = rank + move[0];
+            int newFile = file + move[1];
+
+            if (isValidSquare(newRank, newFile)) {
+                int targetSquare = newRank * 8 + newFile;
+                attacks |= Bit(targetSquare);
+            }
+        }
+
+        knightAttacks[square] = attacks;
+    }
+}
+
+void MoveGen::initKingAttacks() {
+    for (int square = 0; square < 64; ++square) {
+        U64 attacks = 0ULL;
+        int rank = square / 8;
+        int file = square % 8;
+
+        // King moves: iterate over all possible directions
+        for (int dr = -1; dr <= 1; ++dr) {
+            for (int df = -1; df <= 1; ++df) {
+                if (dr == 0 && df == 0) {
+                    continue; // Skip the current square
+                }
+
+                int newRank = rank + dr;
+                int newFile = file + df;
+
+                // Check if new position is within the board boundaries
+                if (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) {
+                    int targetSquare = newRank * 8 + newFile;
+                    attacks |= 1ULL << targetSquare;
+                }
+            }
+        }
+
+        kingAttacks[square] = attacks;
+    }
+}
+
+
+void MoveGen::initAllAttackTables() {
+    initKingAttacks();
+    initKnightAttacks();
+}
 
 
 void MoveGen::pawnMove(MoveList &moves, Square square, bool color, Bitboard allies, Bitboard enemies, Square passant) {
@@ -192,16 +253,33 @@ void MoveGen::pawnMove(MoveList &moves, Square square, bool color, Bitboard alli
         }
 }
 
-void MoveGen::knightMove(MoveList &moves, bool player, Square square, Bitboard allies){
-    std::array directions = {
-        std::make_pair(-2, -1), std::make_pair(-2, 1),
-        std::make_pair(-1, -2), std::make_pair(-1, 2),
-        std::make_pair(1, -2), std::make_pair(1, 2),
-        std::make_pair(2, -1), std::make_pair(2, 1)
-    };
+void MoveGen::knightMove(MoveList &moves, bool player, Square square, Bitboard allies) {
+    // Retrieve the attack bitboard for the knight's position
+    U64 attackBitboard = knightAttacks[square];
 
-    pieceMove(moves,player, square, directions, false, allies);
+    // Exclude squares occupied by friendly pieces
+    attackBitboard &= ~allies.getBitboard();
+
+    // Iterate over each possible move
+    while (attackBitboard) {
+        // Get the index of the least significant set bit (the target square)
+        int targetSquare = __builtin_ctzll(attackBitboard);
+
+        // Clear the least significant set bit
+        attackBitboard &= attackBitboard - 1;
+
+        // Determine the move type
+
+        // Add the move to the move list
+        moves.push(Move{
+            square,                            // origin
+            static_cast<Square>(targetSquare), // destination
+            player,
+            NORMAL                           // type
+        });
+    }
 }
+
 
 void MoveGen::bishopMove(MoveList &moves, bool player, Square square, Bitboard allies, Bitboard enemies) {
     std::array directions = {
@@ -240,19 +318,34 @@ void MoveGen::queenMove(MoveList &moves, bool player, Square square, Bitboard al
 }
 
 void MoveGen::kingMove(MoveList &moves, bool player, Square square, Bitboard allies) {
-    std::array directions = {
-        std::make_pair(-1, -1), // Up-Left (Northwest)
-        std::make_pair(-1, 0),  // Up (North)
-        std::make_pair(-1, 1),  // Up-Right (Northeast)
-        std::make_pair(0, -1),  // Left (West)
-        std::make_pair(0, 1),   // Right (East)
-        std::make_pair(1, -1),  // Down-Left (Southwest)
-        std::make_pair(1, 0),   // Down (South)
-        std::make_pair(1, 1)    // Down-Right (Southeast)
-    };
+    // Retrieve the attack bitboard for the king's position
+    U64 attackBitboard = kingAttacks[square];
 
-    pieceMove(moves,player,square, directions, false, allies);
+    // Exclude squares occupied by friendly pieces
+    attackBitboard &= ~allies.getBitboard();
+
+    // Iterate over each possible move
+    while (attackBitboard) {
+        // Get the index of the least significant set bit (the target square)
+        int targetSquare = __builtin_ctzll(attackBitboard);
+
+        // Clear the least significant set bit
+        attackBitboard &= attackBitboard - 1;
+
+        // Ensure targetSquare is within valid range (0 to 63)
+        if (targetSquare >= 0 && targetSquare < 64) {
+
+            // Add the move to the move list
+            moves.push(Move{
+                square,                            // origin
+                static_cast<Square>(targetSquare), // destination
+                player,
+                NORMAL                           // type
+            });
+        }
+    }
 }
+
 
 void MoveGen::castleMove(MoveList &moves, bool player, Square square, int castlingRights, Bitboard allies, Bitboard enemies) {
     auto board = Bitboard(allies.getBitboard() | enemies.getBitboard());

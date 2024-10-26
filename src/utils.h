@@ -14,69 +14,85 @@
 
 typedef uint64_t U64;
 
-    inline U64 Bit(int n) {
-        return 1ULL << n;
+inline U64 Bit(int n) {
+    return 1ULL << n;
+}
+
+// Check if a square is on the board
+constexpr bool isValidSquare(int rank, int file) {
+        return rank >= 0 && rank < 8 && file >= 0 && file < 8;
     }
 
-    enum Square {
-        a1,  b1,  c1,  d1,  e1,  f1,  g1,  h1,
-        a2,  b2,  c2,  d2,  e2,  f2,  g2,  h2,
-        a3,  b3,  c3,  d3,  e3,  f3,  g3,  h3,
-        a4,  b4,  c4,  d4,  e4,  f4,  g4,  h4,
-        a5,  b5,  c5,  d5,  e5,  f5,  g5,  h5,
-        a6,  b6,  c6,  d6,  e6,  f6,  g6,  h6,
-        a7,  b7,  c7,  d7,  e7,  f7,  g7,  h7,
-        a8,  b8,  c8,  d8,  e8,  f8,  g8,  h8,
-        noSquare = -1
-    };
+// Get the rank from a square index
+constexpr int getRank(int square) {
+        return square / 8;
+    }
+
+// Get the file from a square index
+constexpr int getFile(int square) {
+        return square % 8;
+    }
+
+enum Square {
+    a1,  b1,  c1,  d1,  e1,  f1,  g1,  h1,
+    a2,  b2,  c2,  d2,  e2,  f2,  g2,  h2,
+    a3,  b3,  c3,  d3,  e3,  f3,  g3,  h3,
+    a4,  b4,  c4,  d4,  e4,  f4,  g4,  h4,
+    a5,  b5,  c5,  d5,  e5,  f5,  g5,  h5,
+    a6,  b6,  c6,  d6,  e6,  f6,  g6,  h6,
+    a7,  b7,  c7,  d7,  e7,  f7,  g7,  h7,
+    a8,  b8,  c8,  d8,  e8,  f8,  g8,  h8,
+    noSquare = -1
+};
+
 inline Square squareIndex(int rank, int file) {
     return static_cast<Square>((rank << 3) | file); // Equivalent to rank * 8 + file
 }
 
-    enum Direction {
-        HORIZONTAL,
-        VERTICAL,
-        EVEN,
-        ODD,
-        NO_DIRECTION
-    };
+enum Direction {
+    HORIZONTAL,
+    VERTICAL,
+    EVEN,
+    ODD,
+    NO_DIRECTION
+};
 
-    enum Piece{
-        PAWN,
-        KNIGHT,
-        BISHOP,
-        ROOK,
-        QUEEN,
-        KING,
-        EMPTY
-    };
+enum Piece{
+    PAWN,
+    KNIGHT,
+    BISHOP,
+    ROOK,
+    QUEEN,
+    KING,
+    EMPTY
+};
 
-    enum Color : bool {
-        WHITE = false,
-        BLACK = true
-    };
+enum Color : bool {
+    WHITE = false,
+    BLACK = true
+};
 
-    enum PieceCode {
-        WHITE_PAWN,
-        WHITE_KNIGHT,
-        WHITE_BISHOP,
-        WHITE_ROOK,
-        WHITE_QUEEN,
-        WHITE_KING,
-        BLACK_PAWN,
-        BLACK_KNIGHT,
-        BLACK_BISHOP,
-        BLACK_ROOK,
-        BLACK_QUEEN,
-        BLACK_KING
-    };
+enum PieceCode {
+    WHITE_PAWN,
+    WHITE_KNIGHT,
+    WHITE_BISHOP,
+    WHITE_ROOK,
+    WHITE_QUEEN,
+    WHITE_KING,
+    BLACK_PAWN,
+    BLACK_KNIGHT,
+    BLACK_BISHOP,
+    BLACK_ROOK,
+    BLACK_QUEEN,
+    BLACK_KING
+};
 
-    enum MoveType {
-        NORMAL,
-        CASTLE,
-        EN_PASSANT,
-        PROMOTION
-    };
+enum MoveType {
+    NORMAL,
+    CASTLE,
+    EN_PASSANT,
+    PROMOTION
+};
 
 struct Move {
     Square  origin;
@@ -89,7 +105,7 @@ struct Move {
         return (this->origin == other.origin) &&
                (this->destination == other.destination) &&
                (this->promotion == other.promotion);
-    };
+    }
 };
 
 struct StackType {
