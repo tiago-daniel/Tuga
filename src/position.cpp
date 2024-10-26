@@ -8,6 +8,7 @@
 
 Position::Position(const std::string &fen) {
     // Initialize colors, materials, boards, and pieces arrays to zero or empty states
+    MoveGen::initAllAttackTables();
     std::array actualColors = {Bitboard(0), Bitboard(0)};
     this->colors = actualColors;
     this->materials = {0, 0};
