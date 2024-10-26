@@ -8,14 +8,12 @@
 inline int global = 0;
 
 double Search::negaMax(Position& pos, int depth) {
-    int count = 0;
     if (depth == 0) return Evaluation::evaluate(pos);
 
     double max = - 10000;
 
     auto moves = pos.allMoves(pos.getCurrentPlayer());
     for (int i = 0 ;i <  moves.getSize(); i++) {
-        count++;
         auto move = moves.getMoves()[i];
         pos.makeMove(move);
         double score = -negaMax(pos, depth - 1);
@@ -47,14 +45,16 @@ Move Search::rootNegaMax(Position& pos, int depth) {
 }
 
 U64 Search::preft(Position& pos, int depth) {
-    int i;
     U64 nodes = 0;
-    auto moves = pos.allMoves(pos.getCurrentPlayer());
+
     if (depth == 0) return 1ULL;
-    for (i = 0 ;i <  moves.getSize(); i++) {
-        pos.makeMove(moves.getMoves()[i]);
+
+    auto moves = pos.allMoves(pos.getCurrentPlayer());
+    for (int i = 0 ;i <  moves.getSize(); i++) {
+        auto move = moves.getMoves()[i];
+        pos.makeMove(move);
         nodes += preft(pos, depth - 1);
-        pos.unmakeMove(moves.getMoves()[i]);
+        pos.unmakeMove(move);
     }
     return nodes;
 }
