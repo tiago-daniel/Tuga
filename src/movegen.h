@@ -35,7 +35,7 @@ public:
     static void castleMove(MoveList &moves, bool player, Square square,int castlingRights, Bitboard allies = Bitboard(),Bitboard enemies = Bitboard());
 
     static void pieceMove(MoveList &moves, bool player, Square  square, std::span<std::pair<int, int>> directions,
-        bool slide, Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
+        Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
 };
 
 
