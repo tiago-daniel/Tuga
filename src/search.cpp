@@ -51,12 +51,7 @@ Move Search::rootNegaMax(Position& pos, int depth) {
 
 U64 Search::preft(Position& pos, int depth) {
     U64 nodes = 0;
-    if (pos.getResult() != 2) {
-        if (pos.getCurrentPlayer() == WHITE) {
-            return pos.getResult() * 1000;
-        }
-        return  - pos.getResult() * 1000;
-    }
+
     if (depth == 0) return 1ULL;
 
     auto moves = pos.allMoves(pos.getCurrentPlayer());
@@ -64,6 +59,20 @@ U64 Search::preft(Position& pos, int depth) {
         auto move = moves.getMoves()[i];
         pos.makeMove(move);
         nodes += preft(pos, depth - 1);
+        pos.unmakeMove(move);
+    }
+    return nodes;
+}
+
+U64 Search::preftBulk(Position& pos, int depth) {
+    U64 nodes = 0;
+
+    if (depth == 1) return pos.allMoves(pos.getCurrentPlayer()).getSize();
+    auto moves = pos.allMoves(pos.getCurrentPlayer());
+    for (int i = 0 ;i <  moves.getSize(); i++) {
+        auto move = moves.getMoves()[i];
+        pos.makeMove(move);
+        nodes += preftBulk(pos, depth - 1);
         pos.unmakeMove(move);
     }
     return nodes;

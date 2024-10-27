@@ -4,8 +4,6 @@
 
 #include "position.h"
 
-#include <random>
-
 Position::Position(const std::string &fen) {
     // Initialize colors, materials, boards, and pieces arrays to zero or empty states
     MoveGen::initAllAttackTables();
@@ -108,90 +106,6 @@ Position::Position(const std::string &fen) {
     if (!halfmove_clock.empty()) this->draw_count = std::stoi(halfmove_clock);
     if (!fullmove_number.empty()) this->fullmove_number = std::stoi(fullmove_number);
     initZobrist();
-}
-
-std::string Position::to_fen() const {
-    std::string fen;
-
-    // Generate piece placement
-    for (int rank = 7; rank >= 0; --rank) {
-        int empty_squares = 0;
-        for (int file = 0; file < 8; ++file) {
-            int square = rank * 8 + file;
-            Piece piece_type = pieces[square];
-            if (piece_type == EMPTY) {
-                empty_squares++;
-            } else {
-                if (empty_squares > 0) {
-                    fen += std::to_string(empty_squares);
-                    empty_squares = 0;
-                }
-
-                char piece_char;
-                switch (piece_type) {
-                    case PAWN:   piece_char = 'P'; break;
-                    case KNIGHT: piece_char = 'N'; break;
-                    case BISHOP: piece_char = 'B'; break;
-                    case ROOK:   piece_char = 'R'; break;
-                    case QUEEN:  piece_char = 'Q'; break;
-                    case KING:   piece_char = 'K'; break;
-                    default:     piece_char = '?'; break; // Should not happen
-                }
-
-                // Determine the color
-                if (colors[BLACK].hasBit(square)) {
-                    piece_char = std::tolower(piece_char);
-                }
-                fen += piece_char;
-            }
-        }
-        if (empty_squares > 0) {
-            fen += std::to_string(empty_squares);
-        }
-        if (rank > 0) {
-            fen += '/';
-        }
-    }
-
-    // Side to move
-    fen += ' ';
-    fen += (current_player == WHITE) ? 'w' : 'b';
-
-    // Castling availability
-    fen += ' ';
-    std::string castling;
-    if (stack.back().castling_rights & 0b0100) castling += 'K'; // White kingside
-    if (stack.back().castling_rights & 0b1000) castling += 'Q'; // White queenside
-    if (stack.back().castling_rights & 0b0001) castling += 'k'; // Black kingside
-    if (stack.back().castling_rights & 0b0010) castling += 'q'; // Black queenside
-    if (castling.empty()) castling = "-";
-    fen += castling;
-
-    // En passant target square
-    fen += ' ';
-    if (stack.back().passant != a1) {
-        fen += squareToString(stack.back().passant);
-    } else {
-        fen += '-';
-    }
-
-    // Halfmove clock
-    fen += ' ';
-    fen += std::to_string(draw_count);
-
-    // Fullmove number (Assuming you have a fullmove_number attribute)
-    fen += ' ';
-    fen += std::to_string(fullmove_number);
-
-    return fen;
-}
-
-
-uint64_t Position::randomU64() {
-    constexpr int rand = 0x1333317;
-    static std::mt19937_64 mt(rand);
-    std::uniform_int_distribution<uint64_t> dist{};
-    return dist(mt);
 }
 
 uint64_t Position::hash() const {

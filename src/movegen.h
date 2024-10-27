@@ -30,9 +30,12 @@ public:
     static void queenMove(MoveList &moves, bool player, Square square,Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
 
     static void kingMove(MoveList &moves, bool player, Square square, Bitboard allies = Bitboard());
-    static U64 rookMask(Square s);
 
-    static void castleMove(MoveList &moves, bool player, Square square,int castlingRights, Bitboard allies = Bitboard(),Bitboard enemies = Bitboard());
+    static void castleMove(MoveList &moves, bool player, Square square, int castlingRights,
+                           Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());
+    static U64 rookAttack(int square, U64 block);
+    static U64 bishopAttack(int square, U64 block);
+    static U64 find_magic(int sq, int bishop);
 
     static void pieceMove(MoveList &moves, bool player, Square  square, std::span<std::pair<int, int>> directions,
         Bitboard allies = Bitboard(), Bitboard enemies = Bitboard());

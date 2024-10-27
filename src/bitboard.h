@@ -17,7 +17,8 @@ public:
     void removeBit(int bit);
     void addBit(int bit);
     void print() const;
-    [[nodiscard]] U64 countBits(Bitboard mask) const;
+    [[nodiscard]] int countBits() const;
+    int pop_1st_bit();
     void setBitboard(U64 positions);
     [[nodiscard]] bool hasBit(int bit) const;
 };
