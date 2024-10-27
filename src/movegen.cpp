@@ -289,7 +289,7 @@ void MoveGen::bishopMove(MoveList &moves, bool player, Square square, Bitboard a
         std::make_pair(1, 1)    // Down-Right (Southeast)
     };
 
-    pieceMove(moves,player,square, directions, true, allies, enemies);
+    pieceMove(moves,player,square, directions, allies, enemies);
 }
 
 void MoveGen::rookMove(MoveList &moves, bool player, Square square, Bitboard allies, Bitboard enemies) {
@@ -300,7 +300,7 @@ void MoveGen::rookMove(MoveList &moves, bool player, Square square, Bitboard all
         std::make_pair(1, 0),   // Down (South)
     };
 
-    pieceMove(moves,player,square, directions, true, allies, enemies);
+    pieceMove(moves,player,square, directions, allies, enemies);
 }
 
 void MoveGen::queenMove(MoveList &moves, bool player, Square square, Bitboard allies, Bitboard enemies) {
@@ -314,7 +314,7 @@ void MoveGen::queenMove(MoveList &moves, bool player, Square square, Bitboard al
         std::make_pair(1, 0),   // Down (South)
         std::make_pair(1, 1)    // Down-Right (Southeast)
     };
-    pieceMove(moves,player,square, directions, true, allies, enemies);
+    pieceMove(moves,player,square, directions, allies, enemies);
 }
 
 void MoveGen::kingMove(MoveList &moves, bool player, Square square, Bitboard allies) {
@@ -402,7 +402,7 @@ void MoveGen::castleMove(MoveList &moves, bool player, Square square, int castli
 
 
 void MoveGen::pieceMove(MoveList &moves, bool player, Square square, std::span<std::pair<int, int>> directions,
-    bool slide, Bitboard allies, Bitboard enemies) {
+    Bitboard allies, Bitboard enemies) {
 
     // Get the current rank and file
     int rank = square / 8; // Rows (0 to 7)
@@ -414,7 +414,7 @@ void MoveGen::pieceMove(MoveList &moves, bool player, Square square, std::span<s
         int newRank = rank;
         int newFile = file;
 
-        do {
+        while (true) {
             newRank += dRank;
             newFile += dFile;
 
@@ -433,6 +433,6 @@ void MoveGen::pieceMove(MoveList &moves, bool player, Square square, std::span<s
             if (enemies.getBitboard() & Bit((newRank * 8 + newFile))) {
                 break;
             }
-        } while (slide);
+        };
     }
 }

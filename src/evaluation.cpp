@@ -7,11 +7,13 @@
 
 double Evaluation::evaluate(const Position& game) {
     bool color = game.getCurrentPlayer();
-    if (game.getResult() != 2) {
-        return game.getResult() * 1000 - 1;
+    double myMaterial = game.getMaterials(color);
+    double enemyMaterial = game.getMaterials(!color);
+    double materialDifference = myMaterial - enemyMaterial;
+
+    if (materialDifference > 0) {
+        return materialDifference * 1.5 - 0.5 * enemyMaterial;
     }
-    if (game.getMaterials(color) > game.getMaterials(color^1)) {
-        return game.getMaterials(color) - game.getMaterials(color^1) * 2;
-    }
-    return game.getMaterials(color) ^ 2 - game.getMaterials(color^1) ^ 2;
+    // If we're behind, discourage trading by slightly boosting our material value
+    return materialDifference + 0.5 * myMaterial;
 }
