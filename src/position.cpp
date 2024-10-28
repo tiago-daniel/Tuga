@@ -8,7 +8,13 @@
 
 Position::Position(const std::string &fen) {
     // Initialize colors, materials, boards, and pieces arrays to zero or empty states
-    MoveGen::initAllAttackTables();
+    initAllAttackTables();
+    for (int i = 0; i < 64; i++) {
+        find_magic(i, 1);
+    }
+    for (int i = 0; i < 64; i++) {
+        find_magic(i, 0);
+    }
     std::array actualColors = {Bitboard(0), Bitboard(0)};
     this->colors = actualColors;
     this->materials = {0, 0};
@@ -206,7 +212,7 @@ uint64_t Position::hash() const {
 }
 
 uint64_t Position::hashSquare(uint64_t hash, Square square) const {
-    if (pieces[square] == EMPTY) {return hash;}
+    if (pieces[square] == EMPTY or square == noSquare) {return hash;}
     return hash^transpositionTable[square][pieces[square] + 6 * colors[BLACK].hasBit(square)];
 }
 
@@ -418,7 +424,7 @@ void Position::makeMove(const Move &move) {
     this->current_player ^= 1;
 
     hashedBoard ^= blackHash;
-    hashedBoard ^= passantHash[passant % 8];
+    if (passant != noSquare) hashedBoard ^= passantHash[passant % 8];
     newHash(hashedBoard);
     int count = 0;
     for (int i = 0; i < hhSize; i++) {
@@ -643,15 +649,15 @@ void Position::print() const {
 
 MoveList Position::pseudoLegal(bool player) const {
     auto moves = MoveList();
-    Bitboard allies = this->colors[player];
-    Bitboard enemies = this->colors[player xor 1];
+    auto allies = this->colors[player].getBitboard();
+    auto enemies = this->colors[player xor 1].getBitboard();
     for (int row = 0; row < 8; row++) {
         for (int col = 0; col < 8; col++) {
             int n = row * 8 + col;
-            if (allies.getBitboard() & Bit(n)) {
+            if (allies & Bit(n)) {
                 switch (this->pieces[n]) {
                     case PAWN:
-                        MoveGen::pawnMove(moves, static_cast<Square>(n), player, allies, enemies, stack.back().passant);
+                        MoveGen::pawnMove(moves, static_cast<Square>(n), player, Bitboard(allies), Bitboard(enemies), stack.back().passant);
                     break;
                     case KNIGHT:
                         MoveGen::knightMove(moves, player, static_cast<Square>(n), allies);
@@ -667,7 +673,7 @@ MoveList Position::pseudoLegal(bool player) const {
                     break;
                     case KING:
                         MoveGen::kingMove(moves, player, static_cast<Square>(n), allies);
-                        MoveGen::castleMove(moves, player, static_cast<Square>(n), stack.back().castling_rights,allies, enemies);
+                        MoveGen::castleMove(moves, player, static_cast<Square>(n), stack.back().castling_rights,Bitboard(allies), Bitboard(enemies));
                         break;
                     default:
                         break;
@@ -784,26 +790,35 @@ Square Position::pseudoAttacker(bool player, Square square) const {
 
     // Check for pawn attacks
     if (player == WHITE) {
-        if ((colors[player ^ 1].hasBit(square + 9) && pieceOn(static_cast<Square>(square + 9)) == PAWN)) {
-            assert(static_cast<Square>(square + 9) >= a1);
-            assert(static_cast<Square>(square + 9) < h8);
-            return static_cast<Square>(square + 9);
+        if (square < 55) {
+            if ((colors[player ^ 1].hasBit(square + 9) && pieceOn(static_cast<Square>(square + 9)) == PAWN)) {
+                assert(static_cast<Square>(square + 9) >= a1);
+                assert(static_cast<Square>(square + 9) < h8);
+                return static_cast<Square>(square + 9);
+            }
         }
-        if (colors[player ^ 1].hasBit(square + 7) && pieceOn(static_cast<Square>(square + 7)) == PAWN) {
-            assert(static_cast<Square>(square + 7) >= a1);
-            assert(static_cast<Square>(square + 7) < h8);
-            return static_cast<Square>(square + 7);
+        if (square < 57){
+            if (colors[player ^ 1].hasBit(square + 7) && pieceOn(static_cast<Square>(square + 7)) == PAWN) {
+                assert(static_cast<Square>(square + 7) >= a1);
+                assert(static_cast<Square>(square + 7) < h8);
+                return static_cast<Square>(square + 7);
+            }
         }
-    } else {  // BLACK pawns
-        if ((colors[player ^ 1].hasBit(square - 9) && pieceOn(static_cast<Square>(square - 9)) == PAWN)) {
-            assert(static_cast<Square>(square - 9) >= a1);
-            assert(static_cast<Square>(square - 9) < h8);
-            return static_cast<Square>(square - 9);
+    } else {
+        // BLACK pawns
+        if (square >= 9) {
+            if ((colors[player ^ 1].hasBit(square - 9) && pieceOn(static_cast<Square>(square - 9)) == PAWN)) {
+                assert(static_cast<Square>(square - 9) >= a1);
+                assert(static_cast<Square>(square - 9) < h8);
+                return static_cast<Square>(square - 9);
+            }
         }
-        if (colors[player ^ 1].hasBit(square - 7) && pieceOn(static_cast<Square>(square - 7)) == PAWN) {
-            assert(static_cast<Square>(square - 7) >= a1);
-            assert(static_cast<Square>(square - 7) < h8);
-            return static_cast<Square>(square - 7);
+        if (square >= 7) {
+            if (colors[player ^ 1].hasBit(square - 7) && pieceOn(static_cast<Square>(square - 7)) == PAWN) {
+                assert(static_cast<Square>(square - 7) >= a1);
+                assert(static_cast<Square>(square - 7) < h8);
+                return static_cast<Square>(square - 7);
+            }
         }
     }
 

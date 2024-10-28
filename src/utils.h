@@ -5,14 +5,16 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <iostream>
 #include <array>
-#include <string>
-#include <stdexcept>
 #include <cctype>
 #include <cstdint>
+#include <iostream>
+#include <random>
+#include <stdexcept>
+#include <string>
 
 typedef uint64_t U64;
+typedef uint8_t U8;
 
 inline U64 Bit(int n) {
     return 1ULL << n;
@@ -23,10 +25,19 @@ constexpr bool isValidSquare(int rank, int file) {
         return rank >= 0 && rank < 8 && file >= 0 && file < 8;
     }
 
+inline uint64_t randomU64() {
+    constexpr int rand = 0x1333317;
+    static std::mt19937_64 mt(rand);
+    std::uniform_int_distribution<uint64_t> dist{};
+    return dist(mt);
+}
+
+inline uint64_t randomFewBits() {
+    return randomU64() & randomU64() & randomU64();
+}
+
 // Get the rank from a square index
-constexpr int getRank(int square) {
-        return square / 8;
-    }
+constexpr int getRank(int square) { return square / 8; }
 
 // Get the file from a square index
 constexpr int getFile(int square) {
@@ -215,9 +226,9 @@ inline std::ostream& operator<<(std::ostream& os, const Move& i) {
     return os;
 };
 
-inline std::string printMove(const Move& i) {
+inline std::string printMove(const Move &i) {
     if (i.promotion == PAWN) {
-        return  squareToString(i.origin) + " " + squareToString(i.destination);
+        return squareToString(i.origin) + " " + squareToString(i.destination);
     }
     return squareToString(i.origin) + " " + squareToString(i.destination) + " " + pieceToString(i.promotion);
 }

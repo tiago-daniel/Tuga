@@ -14,33 +14,14 @@ int main() {
 
     // Example possible moves (you can modify this based on your game logic)
     // Main loop
-    while (game.getResult() == 2) {
-        /*
-        auto start = std::chrono::high_resolution_clock::now();
-        U64 nodes = Search::preft(game, 6);
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-        std::cout << "Number of nodes : " << nodes << std::endl;
-        std::cout << "Elapsed time: " << duration.count() / 1000 << " milliseconds" << std::endl;
-        std::cout << "Number of nodes per seconds: " <<  nodes *1000000/ duration.count()<< std::endl;
-        */
 
-        auto start = std::chrono::high_resolution_clock::now();
-        Move move = Search::rootNegaMax(game, 6);
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-        std::cout << "Best move : " << move << std::endl;
-        std::cout << "Elapsed time: " << duration.count() / 1000 << " milliseconds" << std::endl;
-        std::string input;
-        std::cin >> input;
-        std::cout << std::endl;
-        Square origin = string_to_square(input.substr(0,2));
-        Square destination = string_to_square(input.substr(2,2));
-        Piece piece;
-        if (input.length() == 5) piece = stringToPiece(input[4]);
-        game.makeMove(game.allMoves(game.getCurrentPlayer()).findMove(origin, destination, piece));
-
-    }
+    auto start = std::chrono::high_resolution_clock::now();
+    U64 nodes = Search::preft(game, 6);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    std::cout << "Number of nodes : " << nodes << std::endl;
+    std::cout << "Elapsed time: " << duration.count() / 1000 << " milliseconds" << std::endl;
+    std::cout << "Number of nodes per seconds: " <<  nodes *1000000/ duration.count()<< std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(5));
     return game.getResult();
 }

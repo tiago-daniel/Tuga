@@ -51,12 +51,6 @@ Move Search::rootNegaMax(Position& pos, int depth) {
 
 U64 Search::preft(Position& pos, int depth) {
     U64 nodes = 0;
-    if (pos.getResult() != 2) {
-        if (pos.getCurrentPlayer() == WHITE) {
-            return pos.getResult() * 1000;
-        }
-        return  - pos.getResult() * 1000;
-    }
     if (depth == 0) return 1ULL;
 
     auto moves = pos.allMoves(pos.getCurrentPlayer());
