@@ -3,20 +3,18 @@
 //
 
 #include "search.h"
-// #include "draw.h"
 #include <chrono>
 #include <thread>
 
 
 int main() {
-    std::string fen = "8/2p5/3p4/KP5r/1R3P2/6k1/6P1/8 b - - 0 2";
+    std::string fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
     auto game = Position(fen);
-
     // Example possible moves (you can modify this based on your game logic)
     // Main loop
 
     auto start = std::chrono::high_resolution_clock::now();
-    U64 nodes = Search::preft(game, 6);
+    U64 nodes = Search::preft(game, 5);
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     std::cout << "Number of nodes : " << nodes << std::endl;

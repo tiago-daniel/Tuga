@@ -444,7 +444,7 @@ void Position::makeMove(const Move &move) {
 }
 
 uint64_t Position::promotionMove(const Move &move) {
-    this->materials[move.player] += move.promotion - 1;
+    this->materials[move.player] += values[move.promotion]- 1;
     auto hashedBoard = hash();
     hashedBoard = hashSquare(hashedBoard, move.origin);
     hashedBoard = hashSquare(hashedBoard, move.destination);
