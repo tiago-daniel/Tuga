@@ -6,7 +6,13 @@
 
 Position::Position(const std::string &fen) {
     // Initialize colors, materials, boards, and pieces arrays to zero or empty states
-    MoveGen::initAllAttackTables();
+    initAllAttackTables();
+    for (int i = 0; i < 64; i++) {
+        find_magic(i, 1);
+    }
+    for (int i = 0; i < 64; i++) {
+        find_magic(i, 0);
+    }
     std::array actualColors = {Bitboard(0), Bitboard(0)};
     this->colors = actualColors;
     this->materials = {0, 0};
@@ -557,15 +563,15 @@ void Position::print() const {
 
 MoveList Position::pseudoLegal(bool player) const {
     auto moves = MoveList();
-    Bitboard allies = this->colors[player];
-    Bitboard enemies = this->colors[player xor 1];
+    U64 allies = this->colors[player].getBitboard();
+    U64 enemies = this->colors[player xor 1].getBitboard();
     for (int row = 0; row < 8; row++) {
         for (int col = 0; col < 8; col++) {
             int n = row * 8 + col;
-            if (allies.getBitboard() & Bit(n)) {
+            if (allies & Bit(n)) {
                 switch (this->pieces[n]) {
                     case PAWN:
-                        MoveGen::pawnMove(moves, static_cast<Square>(n), player, allies, enemies, stack.back().passant);
+                        MoveGen::pawnMove(moves, static_cast<Square>(n), player, Bitboard(allies), Bitboard(enemies), stack.back().passant);
                     break;
                     case KNIGHT:
                         MoveGen::knightMove(moves, player, static_cast<Square>(n), allies);
@@ -581,7 +587,8 @@ MoveList Position::pseudoLegal(bool player) const {
                     break;
                     case KING:
                         MoveGen::kingMove(moves, player, static_cast<Square>(n), allies);
-                        MoveGen::castleMove(moves, player, static_cast<Square>(n), stack.back().castling_rights,allies, enemies);
+                        MoveGen::castleMove(moves, player, static_cast<Square>(n),
+                            stack.back().castling_rights,Bitboard(allies), Bitboard(enemies));
                         break;
                     default:
                         break;
@@ -623,79 +630,27 @@ Square Position::findKingSquare(bool player) const {
 }
 
 Square Position::pseudoAttacker(bool player, Square square) const {
-    // Directions: first 4 are orthogonal (rook, queen), next 4 are diagonal (bishop, queen), last 8 are knight moves.
-    std::array directions = {
-        std::make_pair(-1, 0), std::make_pair(0, -1), std::make_pair(0, 1), std::make_pair(1, 0),
-        std::make_pair(-1, -1), std::make_pair(-1, 1), std::make_pair(1, -1), std::make_pair(1, 1),
-        std::make_pair(-2, -1), std::make_pair(-2, 1), std::make_pair(-1, -2), std::make_pair(-1, 2),
-        std::make_pair(1, -2), std::make_pair(1, 2), std::make_pair(2, -1), std::make_pair(2, 1)
-    };
-
-    int rank = square / 8;
-    int file = square % 8;
-
-    // Check all directions
-    for (int i = 0; i < directions.size(); i++) {
-        int dRank = directions[i].first;
-        int dFile = directions[i].second;
-        int newRank = rank;
-        int newFile = file;
-
-
-        do {
-            newRank += dRank;
-            newFile += dFile;
-
-            // If out of bounds, stop checking this direction
-            if (newRank < 0 || newRank >= 8 || newFile < 0 || newFile >= 8) {
-                break;
-            }
-
-            auto newSquare = squareIndex(newRank, newFile);
-            // If we encounter a friendly piece, stop
-            if (colors[player].hasBit(newSquare) and pieceOn(newSquare) != KING) {
-                break;
-            }
-
-            // Check if an opponent piece is attacking this square
-            if (colors[player ^ 1].hasBit(newSquare)) {
-                Piece attackingPiece = pieceOn(newSquare);
-                if (i < 8) {
-                    if (newRank == rank + dRank and newFile == file + dFile) {
-                        if (attackingPiece == KING) {
-                            assert(newSquare >= a1);
-                            assert(newSquare <= h8);
-                            return newSquare;
-                        }
-                    }
-                }
-                if (i < 4) {
-                    if (attackingPiece == ROOK || attackingPiece == QUEEN) {
-                        assert(newSquare >= a1);
-                        assert(newSquare <= h8);
-                        return newSquare;
-                    }
-                    break;
-                }
-                if (i < 8) {
-                    if (attackingPiece == BISHOP || attackingPiece == QUEEN) {
-                        assert(newSquare >= a1);
-                        assert(newSquare <= h8);
-                        return newSquare;
-                    }
-                    break;
-                }
-                if (attackingPiece == KNIGHT) {
-                    assert(newSquare >= a1);
-                    assert(newSquare <= h8);
-                    return newSquare;  // Knight attacking
-                }
-                break;
-            }
-
-        } while (i < 8);  // Continue sliding only for rooks, bishops, queens
+    if (square == noSquare) {
+        return noSquare;
     }
-
+    auto enemyColor = colors[player ^ 1].getBitboard();
+    // Directions: first 4 are orthogonal (rook, queen), next 4 are diagonal (bishop, queen), last 8 are knight moves.
+    U64 board = kingAttacks[square] & enemyColor & boards[KING].getBitboard();
+    if (board) {
+        return static_cast<Square>(__builtin_ctzll(board));
+    }
+    board = knightAttacks[square] & enemyColor & boards[KNIGHT].getBitboard();
+    if (board) {
+        return static_cast<Square>(__builtin_ctzll(board));
+    }
+    board = bishopAttacks(getColors()[player].getBitboard()|enemyColor, square) & enemyColor & (boards[BISHOP].getBitboard() | boards[QUEEN].getBitboard());
+    if (board) {
+        return static_cast<Square>(__builtin_ctzll(board));
+    }
+    board = rookAttacks(getColors()[player].getBitboard()|enemyColor, square) & enemyColor & (boards[ROOK].getBitboard() | boards[QUEEN].getBitboard());
+    if (board) {
+        return static_cast<Square>(__builtin_ctzll(board));
+    }
     // Check for pawn attacks
     if (player == WHITE) {
         if ((colors[player ^ 1].hasBit(square + 9) && pieceOn(static_cast<Square>(square + 9)) == PAWN)) {

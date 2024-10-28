@@ -3,14 +3,13 @@
 //
 
 #include "search.h"
-// #include "draw.h"
 #include <chrono>
 #include <thread>
 
 
 int main() {
     std::string fen = "8/2p5/3p4/KP5r/1R3P2/6k1/6P1/8 b - - 0 2";
-    auto game = Position(fen);
+    auto game = Position();
     // Example possible moves (you can modify this based on your game logic)
     // Main loop
     auto start = std::chrono::high_resolution_clock::now();

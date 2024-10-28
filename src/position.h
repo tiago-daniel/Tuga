@@ -11,7 +11,7 @@
 #include <sstream>
 #include <string>
 #include <cctype>
-
+#include "attacks.h"
 #include "movegen.h"
 
 enum Result { WIN = 1, DRAW = 0, LOSS = -1 };
