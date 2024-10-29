@@ -151,7 +151,7 @@ inline std::string pieceToString(Piece piece) {
     }
 }
 
-inline std::array values{1, 3, 3, 5, 9, 100, 0};
+inline std::array values{1, 3, 3, 5, 9, 200, 0};
 
 inline Square string_to_square(const std::string& square_str) {
     if (square_str.length() != 2) {

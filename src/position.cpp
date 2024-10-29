@@ -86,7 +86,11 @@ Position::Position(const std::string &fen) {
 
     // Handle castling rights, en passant target, halfmove clock, and fullmove number as needed
     Square passant = noSquare;
-    if (en_passant_target.size() == 2) passant = static_cast<Square>(string_to_square(en_passant_target));
+    if (en_passant_target.size() == 2) {
+        passant = static_cast<Square>(string_to_square(en_passant_target));
+        if (passant / 8 == 2) passant = Square(passant + 8);
+        else passant = Square(passant - 8);
+    }
     int can_castle = 0;
     // If the castling availability is '-', no castling rights are available
     if (castling_availability != "-") {
@@ -176,7 +180,8 @@ std::string Position::to_fen() const {
     // En passant target square
     fen += ' ';
     if (stack.back().passant != a1) {
-        fen += squareToString(stack.back().passant);
+        if (stack.back().passant / 8 == 3) fen += squareToString(Square(stack.back().passant - 8));
+        if (stack.back().passant / 8 == 4) fen += squareToString(Square(stack.back().passant + 8));
     } else {
         fen += '-';
     }
@@ -277,6 +282,8 @@ std::vector<StackType>* Position::getStack() {
 void Position::unmakeMove(const Move &move) {
     this->fullmove_number = (move.player == WHITE ) ? fullmove_number : fullmove_number - 1;
     Piece capturedPiece = this->stack.back().captured;
+    Piece movingPiece = pieces[move.destination];
+    stack.pop_back();
     this->hashHistory[hhSize] = 0;
     this->hhSize--;
     this->currentHash = this->hashHistory[hhSize-1];
@@ -314,32 +321,40 @@ void Position::unmakeMove(const Move &move) {
                 pieces[move.destination + 1] = EMPTY;
             }
     }
-
-    // Restore color bitboards and piece position
-    else {
+    if (move.type == EN_PASSANT) {
         this->colors[move.player].removeBit(move.destination);
         this->colors[move.player].addBit(move.origin);
-        this->boards[pieceOn(move.destination)].removeBit(move.destination);
+        this->colors[move.player ^ 1].addBit(stack.back().passant);
+        this->boards[PAWN].removeBit(move.destination);
+        this->boards[PAWN].addBit(move.origin);
+        this->boards[PAWN].addBit(stack.back().passant);
+        pieces[move.origin] = PAWN;
+        pieces[move.destination] = EMPTY;
+        pieces[stack.back().passant] = PAWN;
     }
-
-    // If it's not a promotion, restore the piece's bitboard
-    if (move.type != PROMOTION) {
-        this->boards[pieceOn(move.destination)].addBit(move.origin);
-    } else {
-        this->boards[PAWN].addBit(move.origin);  // Handle promotion
-        this->pieces[move.origin] = PAWN;
-        this->pieces[move.destination] = capturedPiece;
+    if (move.type == PROMOTION) {
+        this->colors[move.player].removeBit(move.destination);
+        this->colors[move.player].addBit(move.origin);
+        this->boards[PAWN].addBit(move.origin);
+        this->boards[move.promotion].removeBit(move.destination);
+        pieces[move.origin] = PAWN;
+        pieces[move.destination] = capturedPiece;
+        if (capturedPiece != EMPTY) {
+            this->boards[capturedPiece].addBit(move.destination);
+            this->colors[move.player ^ 1].addBit(move.destination);
+        }
     }
-
-    // Handle en passant captures
-    if (move.type == EN_PASSANT) {
-        int capturedPawnSquare = (move.player == WHITE) ? move.destination - 8 : move.destination + 8;
-        this->boards[PAWN].addBit(capturedPawnSquare);  // Restore the captured pawn
-        this->pieces[capturedPawnSquare] = PAWN;
-        this->colors[move.player ^ 1].addBit(capturedPawnSquare);
-        capturedPiece = EMPTY;
-    } else if (capturedPiece != EMPTY) {
-        this->colors[move.player ^ 1].addBit(move.destination);  // Restore captured piece
+    if (move.type == NORMAL) {
+        this->colors[move.player].removeBit(move.destination);
+        this->colors[move.player].addBit(move.origin);
+        this->boards[movingPiece].addBit(move.origin);
+        this->boards[movingPiece].removeBit(move.destination);
+        pieces[move.origin] = movingPiece;
+        pieces[move.destination] = capturedPiece;
+        if (capturedPiece != EMPTY) {
+            this->boards[capturedPiece].addBit(move.destination);
+            this->colors[move.player ^ 1].addBit(move.destination);
+        }
     }
 
     // Update the draw count based on captured pieces
@@ -350,14 +365,8 @@ void Position::unmakeMove(const Move &move) {
         if (i-- == 0) break;
     }
 
-    // Restore the piece's original position and flip the player
-    if (move.type != CASTLE and move.type != PROMOTION) {
-        this->pieces[move.origin] = pieceOn(move.destination);
-        this->pieces[move.destination] = capturedPiece;
-    }
     this->current_player ^= 1;
     this->endGame(2);
-    this->stack.pop_back();
 }
 
 void Position::makeMove(const Move &move) {
@@ -448,18 +457,12 @@ uint64_t Position::promotionMove(const Move &move) {
     auto hashedBoard = hash();
     hashedBoard = hashSquare(hashedBoard, move.origin);
     hashedBoard = hashSquare(hashedBoard, move.destination);
-    for (auto &board : this->boards) {
-        if (board.getBitboard() & Bit(move.destination)) {
-            board.removeBit(move.destination);
-        }
-        else if (board.getBitboard() & Bit(move.origin)) {
-            board.removeBit(move.origin);
-        }
-        colors[current_player].removeBit(move.origin);
-        colors[current_player ^ 1].removeBit(move.destination);
-        colors[current_player].addBit(move.destination);
-    }
-    this->boards[move.promotion].addBit(move.destination);
+    colors[move.player].removeBit(move.origin);
+    colors[move.player].addBit(move.destination);
+    colors[move.player ^ 1].removeBit(move.destination);
+    boards[move.promotion].addBit(move.destination);
+    boards[PAWN].removeBit(move.origin);
+    boards[pieces[move.destination]].removeBit(move.destination);
     pieces[move.origin] = EMPTY;
     pieces[move.destination] = move.promotion;
     hashedBoard = hashSquare(hashedBoard, move.destination);
@@ -471,16 +474,10 @@ uint64_t Position::castleMove(const Move &move) {
     if (move.origin + 2 == move.destination) {
         hashedBoard = hashSquare(hashedBoard, move.origin);
         hashedBoard = hashSquare(hashedBoard, static_cast<Square>(move.origin + 2));
-        for (auto &board : this->boards) {
-            if (board.getBitboard() & Bit(move.origin)) {
-                board.removeBit(move.origin);
-                board.addBit(move.destination);
-            }
-            if (board.getBitboard() & Bit(move.origin+3)) {
-                board.removeBit(move.origin+3);
-                board.addBit(move.destination-1);
-            }
-        }
+        boards[ROOK].addBit(move.destination - 1);
+        boards[ROOK].removeBit(move.destination + 1);
+        boards[ROOK].addBit(move.destination);
+        boards[ROOK].removeBit(move.origin);
         pieces[move.destination] = KING;
         pieces[move.origin] = EMPTY;
         pieces[move.destination+1] = EMPTY;
@@ -495,16 +492,10 @@ uint64_t Position::castleMove(const Move &move) {
     else {
         hashedBoard = hashSquare(hashedBoard, move.origin);
         hashedBoard = hashSquare(hashedBoard, static_cast<Square>(move.origin - 2));
-        for (auto &board : this->boards) {
-            if (board.getBitboard() & Bit(move.origin)) {
-                board.removeBit(move.origin);
-                board.addBit(move.destination);
-            }
-            if (board.getBitboard() & Bit(move.destination-2)) {
-                board.removeBit(move.destination-2);
-                board.addBit(move.destination+1);
-            }
-        }
+        boards[ROOK].addBit(move.destination + 1);
+        boards[ROOK].removeBit(move.destination - 2);
+        boards[ROOK].addBit(move.destination);
+        boards[ROOK].removeBit(move.origin);
         pieces[move.destination] = KING;
         pieces[move.origin] = EMPTY;
         pieces[move.destination+1] = ROOK;
@@ -525,58 +516,35 @@ Piece Position::pieceOn(const Square square) const {
 
 uint64_t Position::passantMove(const Move &move) {
     auto hashedBoard = this->currentHash;
+    auto passant = stack.back().passant;
     hashedBoard = hashSquare(hashedBoard, move.origin);
     hashedBoard = hashSquare(hashedBoard, stack.back().passant);
-    // Clear the en passant bit on the board
-    for (auto &board : this->boards) {
-        board.removeBit(stack.back().passant);  // Clear the en passant square
-        if (board.getBitboard() & Bit(move.origin)) {
-            board.removeBit(move.origin);  // Remove the moving piece from origin
-            board.addBit(move.destination);  // Add the moving piece to the destination
-        }
-    }
-
-    // Handle the en passant capture
-    if (move.type == EN_PASSANT) {
-        int capturedPawnSquare = (move.player == WHITE) ? move.destination - 8 : move.destination + 8;
-        this->boards[PAWN].removeBit(capturedPawnSquare);  // Remove captured pawn
-        this->pieces[capturedPawnSquare] = EMPTY;
-        this->colors[move.player ^ 1].removeBit(capturedPawnSquare);  // Remove pawn from opponent's color set
-    }
-
-    // Update the piece positions
-    pieces[move.destination] = pieces[move.origin];
+    this->colors[move.player].removeBit(move.origin);
+    this->colors[move.player].addBit(move.destination);
+    this->colors[move.player^1].removeBit(passant);
+    this->boards[PAWN].addBit(move.destination);
+    this->boards[PAWN].removeBit(passant);
+    this->boards[PAWN].removeBit(move.origin);
     pieces[move.origin] = EMPTY;
-    this->draw_count = 0;
-
-    // Update color bitboards
-    colors[current_player].removeBit(move.origin);
-    colors[current_player].addBit(move.destination);
+    pieces[passant] = EMPTY;
+    pieces[move.destination] = PAWN;
     hashedBoard = hashSquare(hashedBoard, move.destination);
     return hashedBoard;
 }
 
 uint64_t Position::normalMove(const Move &move) {
     auto hashedBoard = this->currentHash;
+    auto movingPiece = pieces[move.origin];
     hashedBoard = hashSquare(hashedBoard, move.origin);
     hashedBoard = hashSquare(hashedBoard, move.destination);
-    for (auto &board : this->boards) {
-        if (board.hasBit(move.destination)) {
-            board.removeBit(move.destination);
-        }
-        if (board.hasBit(move.origin)) {
-            board.removeBit(move.origin);
-            board.addBit(move.destination);
-        }
-    }
-
-    pieces[move.destination] = pieces[move.origin];  // Copy piece from origin to destination
-    pieces[move.origin] = EMPTY;  // Set origin square as empty
-
-
-    colors[current_player].removeBit(move.origin);
-    colors[current_player ^ 1].removeBit(move.destination);
-    colors[current_player].addBit(move.destination);
+    colors[move.player].removeBit(move.origin);
+    colors[move.player].addBit(move.destination);
+    colors[move.player ^ 1].removeBit(move.destination);
+    boards[movingPiece].addBit(move.destination);
+    boards[movingPiece].removeBit(move.origin);
+    boards[pieces[move.destination]].removeBit(move.destination);
+    pieces[move.origin] = EMPTY;
+    pieces[move.destination] = movingPiece;
     hashedBoard = hashSquare(hashedBoard, move.destination);
     return hashedBoard;
 }
@@ -715,115 +683,65 @@ Square Position::findKingSquare(bool player) const {
 }
 
 Square Position::pseudoAttacker(bool player, Square square) const {
+    if (square == noSquare) {
+        return noSquare;
+    }
+    auto kingSquare = findKingSquare(player);
+    auto enemyColor = colors[player ^ 1].getBitboard();
     // Directions: first 4 are orthogonal (rook, queen), next 4 are diagonal (bishop, queen), last 8 are knight moves.
-    std::array directions = {
-        std::make_pair(-1, 0), std::make_pair(0, -1), std::make_pair(0, 1), std::make_pair(1, 0),
-        std::make_pair(-1, -1), std::make_pair(-1, 1), std::make_pair(1, -1), std::make_pair(1, 1),
-        std::make_pair(-2, -1), std::make_pair(-2, 1), std::make_pair(-1, -2), std::make_pair(-1, 2),
-        std::make_pair(1, -2), std::make_pair(1, 2), std::make_pair(2, -1), std::make_pair(2, 1)
-    };
-
-    int rank = square / 8;
-    int file = square % 8;
-
-    // Check all directions
-    for (int i = 0; i < directions.size(); i++) {
-        int dRank = directions[i].first;
-        int dFile = directions[i].second;
-        int newRank = rank;
-        int newFile = file;
-
-
-        do {
-            newRank += dRank;
-            newFile += dFile;
-
-            // If out of bounds, stop checking this direction
-            if (newRank < 0 || newRank >= 8 || newFile < 0 || newFile >= 8) {
-                break;
-            }
-
-            auto newSquare = squareIndex(newRank, newFile);
-            // If we encounter a friendly piece, stop
-            if (colors[player].hasBit(newSquare) and pieceOn(newSquare) != KING) {
-                break;
-            }
-
-            // Check if an opponent piece is attacking this square
-            if (colors[player ^ 1].hasBit(newSquare)) {
-                Piece attackingPiece = pieceOn(newSquare);
-                if (i < 8) {
-                    if (newRank == rank + dRank and newFile == file + dFile) {
-                        if (attackingPiece == KING) {
-                            assert(newSquare >= a1);
-                            assert(newSquare <= h8);
-                            return newSquare;
-                        }
-                    }
-                }
-                if (i < 4) {
-                    if (attackingPiece == ROOK || attackingPiece == QUEEN) {
-                        assert(newSquare >= a1);
-                        assert(newSquare <= h8);
-                        return newSquare;
-                    }
-                    break;
-                }
-                if (i < 8) {
-                    if (attackingPiece == BISHOP || attackingPiece == QUEEN) {
-                        assert(newSquare >= a1);
-                        assert(newSquare <= h8);
-                        return newSquare;
-                    }
-                    break;
-                }
-                if (attackingPiece == KNIGHT) {
-                    assert(newSquare >= a1);
-                    assert(newSquare <= h8);
-                    return newSquare;  // Knight attacking
-                }
-                break;
-            }
-
-        } while (i < 8);  // Continue sliding only for rooks, bishops, queens
+    U64 board = kingAttacks[square] & enemyColor & boards[KING].getBitboard();
+    if (board) {
+        return static_cast<Square>(__builtin_ctzll(board));
+    }
+    board = knightAttacks[square] & enemyColor & boards[KNIGHT].getBitboard();
+    if (board) {
+        return static_cast<Square>(__builtin_ctzll(board));
+    }
+    board = bishopAttacks(getColors()[player].getBitboard()|enemyColor&~Bit(kingSquare), square) & enemyColor & (boards[BISHOP].getBitboard() | boards[QUEEN].getBitboard());
+    if (board) {
+        return static_cast<Square>(__builtin_ctzll(board));
+    }
+    board = rookAttacks(getColors()[player].getBitboard()|enemyColor&~Bit(kingSquare), square) & enemyColor & (boards[ROOK].getBitboard() | boards[QUEEN].getBitboard());
+    if (board) {
+        return static_cast<Square>(__builtin_ctzll(board));
     }
 
-    // Check for pawn attacks
-    if (player == WHITE) {
-        if (square < 55) {
-            if ((colors[player ^ 1].hasBit(square + 9) && pieceOn(static_cast<Square>(square + 9)) == PAWN)) {
-                assert(static_cast<Square>(square + 9) >= a1);
-                assert(static_cast<Square>(square + 9) < h8);
-                return static_cast<Square>(square + 9);
-            }
-        }
-        if (square < 57){
-            if (colors[player ^ 1].hasBit(square + 7) && pieceOn(static_cast<Square>(square + 7)) == PAWN) {
-                assert(static_cast<Square>(square + 7) >= a1);
-                assert(static_cast<Square>(square + 7) < h8);
-                return static_cast<Square>(square + 7);
-            }
-        }
-    } else {
-        // BLACK pawns
-        if (square >= 9) {
-            if ((colors[player ^ 1].hasBit(square - 9) && pieceOn(static_cast<Square>(square - 9)) == PAWN)) {
-                assert(static_cast<Square>(square - 9) >= a1);
-                assert(static_cast<Square>(square - 9) < h8);
-                return static_cast<Square>(square - 9);
-            }
-        }
-        if (square >= 7) {
-            if (colors[player ^ 1].hasBit(square - 7) && pieceOn(static_cast<Square>(square - 7)) == PAWN) {
-                assert(static_cast<Square>(square - 7) >= a1);
-                assert(static_cast<Square>(square - 7) < h8);
-                return static_cast<Square>(square - 7);
-            }
+// Check for pawn attacks
+if (player == WHITE) {
+    if (square < 55) {
+        if ((colors[player ^ 1].hasBit(square + 9) && pieceOn(static_cast<Square>(square + 9)) == PAWN) and square % 8 != 7) {
+            assert(static_cast<Square>(square + 9) >= a1);
+            assert(static_cast<Square>(square + 9) < h8);
+            return static_cast<Square>(square + 9);
         }
     }
+    if (square < 57){
+        if (colors[player ^ 1].hasBit(square + 7) && pieceOn(static_cast<Square>(square + 7)) == PAWN and square % 8 != 0) {
+            assert(static_cast<Square>(square + 7) >= a1);
+            assert(static_cast<Square>(square + 7) < h8);
+            return static_cast<Square>(square + 7);
+        }
+    }
+} else {
+    // BLACK pawns
+    if (square >= 9) {
+        if ((colors[player ^ 1].hasBit(square - 9) && pieceOn(static_cast<Square>(square - 9)) == PAWN) and square % 8 != 0) {
+            assert(static_cast<Square>(square - 9) >= a1);
+            assert(static_cast<Square>(square - 9) < h8);
+            return static_cast<Square>(square - 9);
+        }
+    }
+    if (square >= 7) {
+        if (colors[player ^ 1].hasBit(square - 7) && pieceOn(static_cast<Square>(square - 7)) == PAWN and square % 8 != 7) {
+            assert(static_cast<Square>(square - 7) >= a1);
+            assert(static_cast<Square>(square - 7) < h8);
+            return static_cast<Square>(square - 7);
+        }
+    }
+}
 
-    // No attack found
-    return noSquare;
+// No attack found
+return noSquare;
 }
 
 bool Position::isPseudoAttacked(bool player, Square square) const {
@@ -930,7 +848,9 @@ bool Position::isLegal(const Move &move) {
         }
         return true;
     }
-
+    if (isKingInDoubleCheck(move.player)) {
+        return false;
+    }
     // Check if the piece is pinned and restrict its movement to the pin direction
     auto dir = directionPinned(move.origin);
     if (dir != NO_DIRECTION) {

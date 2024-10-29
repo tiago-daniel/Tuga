@@ -63,41 +63,20 @@ U64 Search::preft(Position& pos, int depth) {
     return nodes;
 }
 
-int Search::negaMaxTest(Position& pos, int depth, std::vector<int>& counts) {
-    if (depth == 0) return Evaluation::evaluate(pos);
-
-    int max = -1000;
-    int currentDepth = counts.size() - depth;
-    int count = 0; // Track moves explored at this depth
-
-    for (int i = 0; i < pos.allMoves(pos.getCurrentPlayer()).getSize(); i++) {
-        if (depth == counts.size()) {
-            std::cout << pos.allMoves(pos.getCurrentPlayer()).getMoves()[i] << " : ";
-        }
-        count+=1;
-        auto move = pos.allMoves(pos.getCurrentPlayer()).getMoves()[i];
-        pos.makeMove(move);
-        int score = -negaMaxTest(pos, depth - 1, counts); // Recursive call
-        pos.unmakeMove(move);
-        if (depth == counts.size()) {
-            if (counts[counts.size()-1] == 0) std::cout <<  1 << std::endl;
-            else if (counts[counts.size()-1] - global < 0) std::cout <<  counts[counts.size()-1] << std::endl;
-            else std::cout << counts[counts.size()-1] - global << std::endl;
-            global = counts[counts.size()-1];
-        }
-        if (score > max) max = score;
-    }
-
-    counts[currentDepth] += count; // Accumulate moves count for this depth
-    return max;
-}
-
 void Search::runSearch(Position pos, int depth) {
-    std::vector counts(depth, 0); // To store move counts for each depth
-    negaMaxTest(pos, depth, counts);
 
-    // After the search is complete, print the move counts for each depth
-    for (int i = 0; i < depth; i++) {
-        std::cout << "Depth " << i + 1 << " : " << counts[i] << " moves" << std::endl;
+    U64 nodes = 0;
+    U64 curr;
+
+    auto moves = pos.allMoves(pos.getCurrentPlayer());
+    for (int i = 0 ;i <  moves.getSize(); i++) {
+        curr = 0;
+        auto move = moves.getMoves()[i];
+        pos.makeMove(move);
+        curr =  preft(pos, depth - 1);
+        pos.unmakeMove(move);
+        std::cout << move << " - " <<  curr << std::endl;
+        nodes += curr;
     }
+    std::cout << "Nodes " << " : " << nodes << std::endl;
 }
