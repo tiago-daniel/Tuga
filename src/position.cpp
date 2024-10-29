@@ -93,16 +93,16 @@ Position::Position(const std::string &fen) {
         for (char c : castling_availability) {
             switch (c) {
                 case 'K':
-                    can_castle |= 0b1000; // White can castle kingside
+                    can_castle |= 0b1; // White can castle kingside
                 break;
                 case 'Q':
-                    can_castle |= 0b0100; // White can castle queenside
+                    can_castle |= 0b10; // White can castle queenside
                 break;
                 case 'k':
-                    can_castle |= 0b0010; // Black can castle kingside
+                    can_castle |= 0b0100; // Black can castle kingside
                 break;
                 case 'q':
-                    can_castle |= 0b0001; // Black can castle queenside
+                    can_castle |= 0b1000; // Black can castle queenside
                 break;
                 default:
                     // Handle invalid characters if necessary

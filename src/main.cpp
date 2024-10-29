@@ -8,13 +8,12 @@
 
 
 int main() {
-    std::string fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+    std::string fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K1R1 b Qkq - 1 1";
     auto game = Position(fen);
     // Example possible moves (you can modify this based on your game logic)
     // Main loop
-
     auto start = std::chrono::high_resolution_clock::now();
-    U64 nodes = Search::preft(game, 5);
+    auto nodes = Search::preft(game, 4);
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     std::cout << "Number of nodes : " << nodes << std::endl;
