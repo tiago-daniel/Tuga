@@ -44,6 +44,7 @@ public:
     void newHash(uint64_t hash);
     void endGame(int score);
     [[nodiscard]] int getResult() const;
+    [[nodiscard]] int countAttackers(bool attackingPlayer, Square square) const;
     [[nodiscard]] int getDrawCount() const;
     [[nodiscard]] std::array<Bitboard, 6> getBitboards() const;
     [[nodiscard]] std::array<Bitboard, 2> getColors() const;

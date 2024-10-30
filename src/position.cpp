@@ -359,14 +359,43 @@ void Position::unmakeMove(const Move &move) {
 
     // Update the draw count based on captured pieces
     this->draw_count = 0;
-    size_t i = stack.size() - 1;
-    while (stack[i].captured == EMPTY) {
+    size_t i = stack.size();
+    while (i > 0) {
+        i--;
+        if (stack[i].captured != EMPTY) break;
         draw_count++;
-        if (i-- == 0) break;
     }
+
 
     this->current_player ^= 1;
     this->endGame(2);
+}
+
+int Position::countAttackers(bool attackingPlayer, Square square) const {
+    int count = 0;
+    U64 occupied = getColors()[0].getBitboard() | getColors()[1].getBitboard();
+
+    // Pawn attacks
+    //U64 pawnAttacks = (attackingPlayer == WHITE) ? pawnAttacksBlack(square) : pawnAttacksWhite(square);
+    //count += __builtin_popcountll(pawnAttacks & boards[PAWN].getBitboard() & colors[attackingPlayer].getBitboard());
+
+    // Knight attacks
+    U64 knightAttacksBoard = knightAttacks[square] & boards[KNIGHT].getBitboard() & colors[attackingPlayer].getBitboard();
+    count += __builtin_popcountll(knightAttacksBoard);
+
+    // Bishop attacks
+    U64 bishopAttackBoard = bishopAttacks(occupied, square) & colors[attackingPlayer].getBitboard();
+    count += __builtin_popcountll(bishopAttackBoard & (boards[BISHOP].getBitboard() | boards[QUEEN].getBitboard()));
+
+    // Rook attacks
+    U64 rookAttackBoard = rookAttacks(occupied, square) & colors[attackingPlayer].getBitboard();
+    count += __builtin_popcountll(rookAttackBoard & (boards[ROOK].getBitboard() | boards[QUEEN].getBitboard()));
+
+    // King attacks (shouldn't occur but included for completeness)
+    U64 kingAttackBoard = kingAttacks[square] & boards[KING].getBitboard() & colors[attackingPlayer].getBitboard();
+    count += __builtin_popcountll(kingAttackBoard);
+
+    return count;
 }
 
 void Position::makeMove(const Move &move) {
@@ -457,12 +486,12 @@ uint64_t Position::promotionMove(const Move &move) {
     auto hashedBoard = hash();
     hashedBoard = hashSquare(hashedBoard, move.origin);
     hashedBoard = hashSquare(hashedBoard, move.destination);
+    boards[pieces[move.destination]].removeBit(move.destination);
     colors[move.player].removeBit(move.origin);
     colors[move.player].addBit(move.destination);
     colors[move.player ^ 1].removeBit(move.destination);
     boards[move.promotion].addBit(move.destination);
     boards[PAWN].removeBit(move.origin);
-    boards[pieces[move.destination]].removeBit(move.destination);
     pieces[move.origin] = EMPTY;
     pieces[move.destination] = move.promotion;
     hashedBoard = hashSquare(hashedBoard, move.destination);
@@ -537,12 +566,12 @@ uint64_t Position::normalMove(const Move &move) {
     auto movingPiece = pieces[move.origin];
     hashedBoard = hashSquare(hashedBoard, move.origin);
     hashedBoard = hashSquare(hashedBoard, move.destination);
+    boards[pieces[move.destination]].removeBit(move.destination);
     colors[move.player].removeBit(move.origin);
     colors[move.player].addBit(move.destination);
     colors[move.player ^ 1].removeBit(move.destination);
     boards[movingPiece].addBit(move.destination);
     boards[movingPiece].removeBit(move.origin);
-    boards[pieces[move.destination]].removeBit(move.destination);
     pieces[move.origin] = EMPTY;
     pieces[move.destination] = movingPiece;
     hashedBoard = hashSquare(hashedBoard, move.destination);
@@ -697,11 +726,11 @@ Square Position::pseudoAttacker(bool player, Square square) const {
     if (board) {
         return static_cast<Square>(__builtin_ctzll(board));
     }
-    board = bishopAttacks(getColors()[player].getBitboard()|enemyColor&~Bit(kingSquare), square) & enemyColor & (boards[BISHOP].getBitboard() | boards[QUEEN].getBitboard());
+    board = bishopAttacks((getColors()[player].getBitboard()|enemyColor)&~Bit(kingSquare), square) & enemyColor & (boards[BISHOP].getBitboard() | boards[QUEEN].getBitboard());
     if (board) {
         return static_cast<Square>(__builtin_ctzll(board));
     }
-    board = rookAttacks(getColors()[player].getBitboard()|enemyColor&~Bit(kingSquare), square) & enemyColor & (boards[ROOK].getBitboard() | boards[QUEEN].getBitboard());
+    board = rookAttacks((getColors()[player].getBitboard()|enemyColor)&~Bit(kingSquare), square) & enemyColor & (boards[ROOK].getBitboard() | boards[QUEEN].getBitboard());
     if (board) {
         return static_cast<Square>(__builtin_ctzll(board));
     }
@@ -750,18 +779,9 @@ bool Position::isPseudoAttacked(bool player, Square square) const {
 
 bool Position::isKingInDoubleCheck(bool player) const {
     Square kingSquare = findKingSquare(player);
-    Square flag = noSquare;
-    MoveList enemyMoves = this->pseudoLegal(player ^ 1);
-    for (int i = 0; i < enemyMoves.getSize(); i++) {
-        if (enemyMoves.getMoves()[i].destination == kingSquare) {
-            if (flag != noSquare and flag != enemyMoves.getMoves()[i].origin) {
-                return true;
-            }
-            flag = enemyMoves.getMoves()[i].origin;
-        }
-    }
-    return false;
+    return countAttackers(player ^ 1, kingSquare) >= 2;
 }
+
 bool Position::insufficientMaterial() const {
     if (this->boards[PAWN].getBitboard() != 0) {
         return false;

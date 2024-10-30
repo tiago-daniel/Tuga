@@ -106,16 +106,30 @@ enum MoveType {
 };
 
 struct Move {
-    Square  origin;
-    Square  destination;
-    bool player;
-    MoveType type;
-    Piece promotion = PAWN;
+    uint16_t actualMove = 0;
+
+    Move(Square origin, Square destination, MoveType type, Piece promotion) {
+        this->actualMove = origin  * 2^0 + destination * 2^6 + type * 2^12 + promotion * 2^14;
+    }
+
+    [[nodiscard]] Square Move::getOrigin() const {
+        return Square((actualMove >> 0) & 0b111111);
+    }
+
+    [[nodiscard]] Square Move::getDestination() const {
+        return Square((actualMove >> 6) & 0b111111);
+    }
+
+    [[nodiscard]] MoveType Move::getType() const {
+        return MoveType((actualMove >> 12) & 0b11);
+    }
+
+    [[nodiscard]] Piece Move::getType() const {
+        return MoveType((actualMove >> 14) & 0b11);
+    }
 
     bool operator==(const Move& other) const {
-        return (this->origin == other.origin) &&
-               (this->destination == other.destination) &&
-               (this->promotion == other.promotion);
+        return (this->actualMove ==other.actualMove);
     }
 };
 

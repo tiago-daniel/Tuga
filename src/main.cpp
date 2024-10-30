@@ -8,10 +8,8 @@
 
 
 int main() {
-    std::string fen = "r3k2r/p1ppqpb1/1n2pnp1/3PN3/1p2P3/2N2Q1p/PPPBbPPP/1R2K2R w Kkq - 0 2";
+    std::string fen = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
     auto game = Position(fen);
-    Search::runSearch(game, 2);
-    return 0;
     // Example possible moves (you can modify this based on your game logic)
     // Main loop
     auto start = std::chrono::high_resolution_clock::now();

@@ -55,10 +55,9 @@ U64 Search::preft(Position& pos, int depth) {
 
     auto moves = pos.allMoves(pos.getCurrentPlayer());
     for (int i = 0 ;i <  moves.getSize(); i++) {
-        auto move = moves.getMoves()[i];
-        pos.makeMove(move);
+        pos.makeMove(moves.getMoves()[i]);
         nodes += preft(pos, depth - 1);
-        pos.unmakeMove(move);
+        pos.unmakeMove(moves.getMoves()[i]);
     }
     return nodes;
 }
